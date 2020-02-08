@@ -3,6 +3,9 @@ uuid = "ad0872d7-b137-4624-87af-d763ac8dea1a"
 authors = ["Chris Fisher <fisherc2@miamioh.edu>"]
 version = "0.1.0"
 
+[deps]
+Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
+
 [compat]
 julia = "1"
 

@@ -21,7 +21,7 @@ mutable struct VisualObject{F}
 	location::Vector{Float64}
 end
 
-function VisualObject(features, attended=false, visible=false, diameter=0.0, location=[0.0,0.0])
+function VisualObject(;features, attended=false, visible=false, diameter=0.0, location=[0.0,0.0])
 	return VisualObject(features, attended, visible, diameter, location)
 end
 
@@ -45,19 +45,21 @@ function Model(;iconcic_memory, viewing_distance=40.0, current_time=0.0, attenti
 end
 
 mutable struct Data
-	target::Vector{Symbol}
 	target_present::Bool
+	target_color::Symbol
+	target_shape::Symbol
 	choice::String
 	rt::Float64
 end
 
-Data() = Data(Symbol[], false, "", 0.0)
+Data() = Data(false, "", 0.0, :_, :_)
 
 mutable struct Experiment
 	visicon::Vector{<:VisualObject}
 	width::Float64
-	grid_size::Int64
+	n_cells::Int64
 	n_trials::Int64
+	cell_width::Float64
 	n_color_distractors::Int64
 	n_shape_distractors::Int64
 	colors::Vector{Symbol}
@@ -68,11 +70,12 @@ mutable struct Experiment
 	current_trial::Data
 end
 
-function Experiment(;visicon, width=15.0, grid_size=10, n_trials=20,
+function Experiment(;visicon=VisualObject[], width=15.0, n_cells=10, n_trials=20,
 	n_color_distractors=20, n_shape_distractors=20, shapes=[:q,:p], colors=[:red,:blue],
 	base_rate=.50, diameter=.5, data=Data[], current_trial=Data())
-	@argcheck width/grid_size > diameter
-	@argcheck n_color_distractors + n_shape_distractors + 1 <= grid_size^2
-	return Experiment(visicon, width, grid_size, n_trials,n_color_distractors,
-	 n_shape_distractors, shapes, colors, base_rate, diameter, data,current_trial)
+	cell_width = width/n_cells
+	@argcheck  cell_width > diameter
+	@argcheck n_color_distractors + n_shape_distractors + 1 <= n_cells^2
+	return Experiment(visicon, width, n_cells, n_trials, cell_width, n_color_distractors,
+	 n_shape_distractors, colors, shapes, base_rate, diameter, data,current_trial)
 end
