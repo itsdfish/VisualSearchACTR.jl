@@ -32,7 +32,7 @@ function find_object!(model)
 end
 
 function update_decay!(model)
-    update_decay!.(model, model.iconic_memory)
+    map(x->update_decay!(model, x), model.iconic_memory)
 end
 
 function update_decay!(model, object)
@@ -58,11 +58,64 @@ function topdown_activation!(model)
 end
 
 function update_visibility!(model)
-
+    map(x->feature_visibility!(model, x), model.iconic_memory)
+    map(x->object_visibility!(x), model.iconic_memory)
 end
 
-function remove_nonvisible!(model)
+function feature_visibility!(model, object)
+    angular_distance = compute_angular_distance(model, object)
+    angular_size = compute_angular_size(model, object)
+    for (f,v) in pairs(object.features)
+        parms = model.acuity[f]
+        threshold = compute_acuity_threshold(parms, angular_distance)
+        if feature_is_visible(angular_size, threshold)
+            v.visible = true
+        end
+    end
+    return nothing
+end
 
+function feature_is_visible(angular_size, threshold)
+    return angular_size > threshold
+end
+
+function compute_distance(model, object)
+    sqrt(sum((model.focus .- object.location).^2))
+end
+
+function compute_angular_distance(model, object)
+    distance = compute_distance(model, object)
+    return pixels_to_degrees(model, distance)
+end
+
+function compute_angular_size(model, object)
+    ppi = 72 # pixels per inch
+    distance = compute_distance(model, object)*ppi
+    radians = 2*atan(object.width/(2*distance))
+    return rad2deg(radians)
+end
+
+rad2deg(radians) = radians*180/pi
+
+function compute_acuity_threshold(parms, angular_distance)
+    return parms.a*angular_distance^2 - parms.b*angular_distance
+end
+
+function pixels_to_degrees(model, pixels)
+    ppi = 72 # pixels per inch
+    radians = atan(pixels./ppi, model.viewing_distance)
+    return rad2deg(radians)
+end
+
+function object_visibility!(object)
+    for f in object.features
+        if f.visible
+            object.visible = true
+            return nothing
+        end
+    end
+    object.visible = false
+    return nothing
 end
 
 function attend_object!(model)

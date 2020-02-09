@@ -6,7 +6,7 @@ mutable struct Feature{T}
 	b::Float64
 end
 
-Feature(;fixation_time=0.0, visible=false, value, a=0.0, b=0.0) = Feature(time_elapsed, visible, value, a, b)
+Feature(;fixation_time=0.0, visible=false, value, a=0.0, b=0.0) = Feature(fixation_time, visible, value, a, b)
 
 function populate_features(features, values)
 	vals = [Feature(value=v) for v in values]
@@ -28,7 +28,7 @@ function VisualObject(;features, attended=false, visible=false, width=0.0, locat
 	return VisualObject(features, attended, visible, width, 0.0, 0.0, 0.0, location)
 end
 
-mutable struct Model{B,T,F}
+mutable struct Model{A,B,T,F}
     iconic_memory::Vector{<:VisualObject{F}}
 	target::T
 	abstract_location::B
@@ -41,15 +41,17 @@ mutable struct Model{B,T,F}
 	noise::Float64
 	threshold::Float64
 	persistance::Float64
-
+	acuity::A
 end
 
-function Model(;iconic_memory, target, viewing_distance=40.0, current_time=0.0, focus=fill(0.0, 2),
-	topdownweight=.4, bottomup_weight=1.1, noise=.2, threshold=0.0, persistence=4.0)
+function Model(;iconic_memory, target, viewing_distance=30.0, current_time=0.0, focus=fill(0.0, 2),
+	topdownweight=.4, bottomup_weight=1.1, noise=.2, threshold=0.0, persistence=4.0, a_color=.104, b_color=.85,
+	 a_shape=.142, b_shape=.96)
 	abstract_location = similar(iconic_memory, 0)
 	vision = similar(iconic_memory, 0)
+	acuity = (color = (a=a_color,b=b_color), shape = (a=a_shape,b=b_shape))
 	return Model(iconic_memory, target, abstract_location, vision, viewing_distance, current_time, focus,
-		topdownweight, bottomup_weight, noise, threshold, persistence)
+		topdownweight, bottomup_weight, noise, threshold, persistence, acuity)
 end
 
 mutable struct Data
@@ -77,7 +79,7 @@ mutable struct Experiment
 	current_trial::Data
 end
 
-function Experiment(;array_width=15.0, object_width=.5, n_cells=10, n_trials=20,
+function Experiment(;array_width=1080, object_width=35.0, n_cells=10, n_trials=20,
 	n_color_distractors=20, n_shape_distractors=20, shapes=[:q,:p], colors=[:red,:blue],
 	base_rate=.50, data=Data[], current_trial=Data())
 	cell_width = array_width/n_cells
