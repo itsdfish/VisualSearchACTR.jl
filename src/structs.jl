@@ -2,11 +2,9 @@ mutable struct Feature{T}
     fixation_time::Float64
     visible::Bool
 	value::T
-	a::Float64
-	b::Float64
 end
 
-Feature(;fixation_time=0.0, visible=false, value, a=0.0, b=0.0) = Feature(fixation_time, visible, value, a, b)
+Feature(;fixation_time=0.0, visible=false, value) = Feature(fixation_time, visible, value)
 
 function populate_features(features, values)
 	vals = [Feature(value=v) for v in values]
@@ -29,7 +27,7 @@ function VisualObject(;features, attended=false, visible=false, width=0.0, locat
 end
 
 mutable struct Model{A,B,T,F}
-    iconic_memory::F
+    iconic_memory::Vector{VisualObject{F}}
 	target::T
 	abstract_location::B
 	vision::B

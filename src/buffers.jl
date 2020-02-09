@@ -13,7 +13,7 @@ function search!(model, experiment)
     while status == :searching
         update_decay!(model)
         update_visibility!(model)
-        #remove_nonvisible!(model)
+        compute_activations!(model)
         status = _search!(model, experiment)
     end
 end
@@ -46,15 +46,55 @@ function update_decay!(model, object)
     return nothing
 end
 
-function compute_activation!(model)
-
+function compute_activations!(model)
+    iconic_memory = filter(x->x.visible, model.iconic_memory)
+    topdown_activations!(iconic_memory, model.target)
+    bottomup_activations!(iconic_memory)
+    weighted_activations!(model, iconic_memory)
+    return nothing
 end
 
-function bottomup_activation!(model)
-
+function weighted_activations!(model, iconic_memory)
+    for object in iconic_memory
+        weighted_activation!(model, object)
+    end
+    return nothing
 end
 
-topdown_activations!(model) = topdown_activations!(model.iconic_memory, model.target)
+function weighted_activation!(model, object)
+    object.activation = model.bottomup_weight * object.bottomup_activation +
+    model.topdown_weight * object.topdown_activation + rand(Normal(0, model.noise))
+    return nothing
+end
+
+bottomup_activations!(model::Model) = bottomup_activations!(model.iconic_memory)
+
+function bottomup_activations!(iconic_memory)
+    for vo1 in iconic_memory
+        activation = 0.0
+        for vo2 in iconic_memory
+            vo1 == vo2 ? continue : nothing
+            activation += bottomup_activation!(vo1, vo2)
+        end
+        vo1.bottomup_activation = activation
+    end
+    return nothing
+end
+
+function bottomup_activation!(vo1, vo2)
+    distance = compute_distance(vo1, vo2)
+    return bottomup_activation!(vo1.features, vo2.features, distance)
+end
+
+function bottomup_activation!(features1, features2, distance)
+    activation = 0.0
+    for (f,v) in pairs(features1)
+        if features2[f].value != v.value
+            activation += 1.0/sqrt(distance)
+        end
+    end
+    return activation
+end
 
 function topdown_activations!(iconic_memory, target)
     for object in iconic_memory
@@ -100,8 +140,12 @@ function feature_is_visible(angular_size, threshold)
     return angular_size > threshold
 end
 
-function compute_distance(model, object)
+function compute_distance(model::Model, object)
     sqrt(sum((model.focus .- object.location).^2))
+end
+
+function compute_distance(vo1, vo2)
+    sqrt(sum((vo1.location .- vo2.location).^2))
 end
 
 function compute_angular_distance(model, object)
