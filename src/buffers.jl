@@ -24,11 +24,12 @@ function _search!(model, experiment)
     status = attend_object!(model)
     status == :error ? (return status) : nothing
     status = target_found(model, experiment)
+    # visualize
     return status
 end
 
 function find_object!(model)
-
+    model.current_time += rand(Gamma(1, .05))
 end
 
 function update_decay!(model)
@@ -53,8 +54,28 @@ function bottomup_activation!(model)
 
 end
 
-function topdown_activation!(model)
+topdown_activations!(model) = topdown_activations!(model.iconic_memory, model.target)
 
+function topdown_activations!(iconic_memory, target)
+    for object in iconic_memory
+        topdown_activation!(object, target)
+    end
+    return nothing
+end
+
+function topdown_activation!(object, target)
+    activation = 0.0
+    for (f,v) in pairs(object.features)
+        if v.visible
+            if v.value == target[f]
+                activation += 1.0
+            end
+        else
+            activation += .5
+        end
+    end
+    object.topdown_activation = activation
+    return nothing
 end
 
 function update_visibility!(model)
@@ -119,7 +140,7 @@ function object_visibility!(object)
 end
 
 function attend_object!(model)
-
+    model.current_time += rand(Gamma(1, .05)) + rand(Gamma(1, .085))
 end
 
 function orient!(model, ex)

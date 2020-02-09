@@ -29,7 +29,7 @@ function VisualObject(;features, attended=false, visible=false, width=0.0, locat
 end
 
 mutable struct Model{A,B,T,F}
-    iconic_memory::Vector{<:VisualObject{F}}
+    iconic_memory::F
 	target::T
 	abstract_location::B
 	vision::B
