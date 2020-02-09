@@ -5,10 +5,7 @@ function initialize_trial!(ex::Experiment)
     ex.current_trial.target_present = present
     ex.current_trial.target_shape = target.shape
     ex.current_trial.target_color = target.color
-    visicon = populate_visicon(ex, target..., present)
-    set_locations!(ex, visicon)
-    ex.visicon = visicon
-    return target
+    return target,present
 end
 
 function populate_visicon(ex, target_color, target_shape, present)
@@ -16,13 +13,14 @@ function populate_visicon(ex, target_color, target_shape, present)
     distractor_shape = setdiff(ex.shapes, [target_shape])[1]
     color_fun() = populate_features((:color,:shape), [distractor_color,target_shape])
     shape_fun() = populate_features((:color,:shape), [target_color,distractor_shape])
-    visicon = [VisualObject(features=color_fun(), width=ex.width) for _ in 1:ex.n_color_distractors]
-    temp = [VisualObject(features=shape_fun(), width=ex.width) for _ in 1:ex.n_shape_distractors]
+    visicon = [VisualObject(features=color_fun(), width=ex.object_width) for _ in 1:ex.n_color_distractors]
+    temp = [VisualObject(features=shape_fun(), width=ex.object_width) for _ in 1:ex.n_shape_distractors]
     push!(visicon, temp...)
     if present
         push!(visicon, VisualObject(features=populate_features((:color,:shape),
-        [target_color,target_shape]), width=ex.width))
+        [target_color,target_shape]), width=ex.object_width))
     end
+    set_locations!(ex, visicon)
     return visicon
 end
 
