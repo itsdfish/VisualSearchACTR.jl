@@ -19,17 +19,74 @@ function search!(model, experiment)
 end
 
 function _search!(model, experiment)
+    data = experiment.current_trial
     status = find_object!(model)
-    status == :error ? (return status) : nothing
-    status = attend_object!(model)
-    status == :error ? (return status) : nothing
+    tΔ = rand(Gamma(1, .05))
+    model.current_time += tΔ
+    if status == :absent
+        data.response = status
+        return status
+    end
+    attend_object!(model)
+    tΔ = rand(Gamma(1, .05)) + rand(Gamma(1, .085))
+    model.current_time += tΔ
     status = target_found(model, experiment)
-    # visualize
+    if status == :present
+        experiment.data
+        return status
+    elseif status == :absent
+        data.response = status
+        return status
+    end
+    status = find_object!(model)
+    tΔ = rand(Gamma(1, .05))
+    model.current_time += tΔ
+    if status == :absent
+        data.response = status
+        return status
+    end
+    attend_object!(model)
+    tΔ = rand(Gamma(1, .05)) + rand(Gamma(1, .085))
+    status = target_found(model, experiment)
+    if status == :present
+        experiment.data
+        return status
+    elseif status == :absent
+        data.response = status
+        return status
+    end
     return status
 end
 
 function find_object!(model)
-    model.current_time += rand(Gamma(1, .05))
+    visible_objects = filter(x->x.visible && !x.attended, model.iconic_memory)
+    model.abstract_location = max_activation(x->x.activation, visible_objects)
+    return nothing
+end
+
+function attend_object!(model)
+    model.vision = model.abstract_location
+    model.vision[1].attended = true
+    # thresholds
+    return nothing
+end
+
+function target_found(model, experiment)
+    for (f,v) in pairs(model.target)
+        model.vision.features[f] != v ? (return :searching) : nothing
+    end
+    return :found
+end
+
+function max_activation(f, vos)
+    max_vo = similar(vos, 1)
+    mv = -Inf
+    for vo in vos
+        if vo.activation > mv
+            max_vo[1] = vo
+        end
+    end
+    return max_vo
 end
 
 function update_decay!(model)
@@ -181,10 +238,6 @@ function object_visibility!(object)
     end
     object.visible = false
     return nothing
-end
-
-function attend_object!(model)
-    model.current_time += rand(Gamma(1, .05)) + rand(Gamma(1, .085))
 end
 
 function orient!(model, ex)

@@ -56,7 +56,7 @@ mutable struct Data
 	target_present::Bool
 	target_color::Symbol
 	target_shape::Symbol
-	choice::String
+	response::String
 	rt::Float64
 end
 
