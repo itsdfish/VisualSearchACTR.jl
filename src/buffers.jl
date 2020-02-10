@@ -8,74 +8,110 @@ function run_model!(model, ex)
     end
 end
 
-function search!(model, experiment)
+function search!(model, ex)
     status = :searching
     while status == :searching
         update_decay!(model)
         update_visibility!(model)
         compute_activations!(model)
-        status = _search!(model, experiment)
+        status = _search!(model, ex)
     end
+    add_data(ex)
 end
 
 function _search!(model, experiment)
     data = experiment.current_trial
     status = find_object!(model)
-    tΔ = rand(Gamma(1, .05))
+    tΔ = cycle_time()
     model.current_time += tΔ
-    if status == :absent
-        data.response = status
+    if status == :error
+        tΔ = cycle_time() + motor_time()
+        model.current_time += tΔ
+        add_response!(model, data, :absent)
         return status
     end
     attend_object!(model)
-    tΔ = rand(Gamma(1, .05)) + rand(Gamma(1, .085))
+    tΔ = cycle_time() + attend_time()
     model.current_time += tΔ
     status = target_found(model, experiment)
     if status == :present
-        experiment.data
-        return status
-    elseif status == :absent
-        data.response = status
+        tΔ = cycle_time() + motor_time()
+        model.current_time += tΔ
+        add_response!(model, data, status)
         return status
     end
     status = find_object!(model)
-    tΔ = rand(Gamma(1, .05))
+    tΔ = cycle_time()
     model.current_time += tΔ
-    if status == :absent
-        data.response = status
+    if status == :error
+        tΔ = cycle_time() + motor_time()
+        model.current_time += tΔ
+        add_response!(model, data, :absent)
         return status
     end
     attend_object!(model)
-    tΔ = rand(Gamma(1, .05)) + rand(Gamma(1, .085))
+    tΔ = cycle_time() + attend_time()
     status = target_found(model, experiment)
     if status == :present
-        experiment.data
-        return status
-    elseif status == :absent
-        data.response = status
+        tΔ = cycle_time() + motor_time()
+        model.current_time += tΔ
+        add_response!(model, data, status)
         return status
     end
     return status
 end
 
-function find_object!(model)
-    visible_objects = filter(x->x.visible && !x.attended, model.iconic_memory)
-    model.abstract_location = max_activation(x->x.activation, visible_objects)
+motor_time() = rand(Gamma(1, .1))
+
+cycle_time() = rand(Gamma(1, .05))
+
+attend_time() = rand(Gamma(1, .085))
+
+function add_response!(model, data, status)
+    data.response = status
+    data.rt = model.current_time
     return nothing
+end
+
+function add_data(ex)
+    push!(ex.data, ex.current_trial)
+    return nothing
+end
+
+function relevant_object(model, vo)
+    if vo.attended || !vo.visible
+        return false
+    end
+    distance = compute_distance(model, vo)
+    if distance > model.distance_threshold
+        return false
+    end
+    if vo.activation < model.activation_threshold
+        return false
+    end
+    return true
+end
+
+function find_object!(model)
+    visible_objects = filter(x->relevant_object(model, x), model.iconic_memory)
+    isempty(visible_objects) ? (return :error) : nothing
+    model.abstract_location = max_activation(x->x.activation, visible_objects)
+    return :searching
 end
 
 function attend_object!(model)
     model.vision = model.abstract_location
     model.vision[1].attended = true
+    model.focus = model.vision[1].location
     # thresholds
     return nothing
 end
 
 function target_found(model, experiment)
     for (f,v) in pairs(model.target)
-        model.vision.features[f] != v ? (return :searching) : nothing
+        model.vision[1].features[f] != v ? (return :searching) : nothing
     end
-    return :found
+    return :present
 end
 
 function max_activation(f, vos)

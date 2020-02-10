@@ -37,7 +37,8 @@ mutable struct Model{A,B,T,F}
 	topdown_weight::Float64
 	bottomup_weight::Float64
 	noise::Float64
-	threshold::Float64
+	activation_threshold::Float64
+	distance_threshold::Float64
 	persistance::Float64
 	acuity::A
 end
@@ -49,18 +50,18 @@ function Model(;iconic_memory, target, viewing_distance=30.0, current_time=0.0, 
 	vision = similar(iconic_memory, 0)
 	acuity = (color = (a=a_color,b=b_color), shape = (a=a_shape,b=b_shape))
 	return Model(iconic_memory, target, abstract_location, vision, viewing_distance, current_time, focus,
-		topdownweight, bottomup_weight, noise, threshold, persistence, acuity)
+		topdownweight, bottomup_weight, noise, -Inf, Inf, persistence, acuity)
 end
 
 mutable struct Data
 	target_present::Bool
 	target_color::Symbol
 	target_shape::Symbol
-	response::String
+	response::Symbol
 	rt::Float64
 end
 
-Data() = Data(false, :_, :_, "", 0.0)
+Data() = Data(false, :_, :_, :_, 0.0)
 
 mutable struct Experiment
 	array_width::Float64
