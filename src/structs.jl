@@ -76,14 +76,16 @@ mutable struct Experiment
 	base_rate::Float64
 	data::Vector{Data}
 	current_trial::Data
+	trace::Bool
 end
 
 function Experiment(;array_width=1080, object_width=35.0, n_cells=10, n_trials=20,
 	n_color_distractors=20, n_shape_distractors=20, shapes=[:q,:p], colors=[:red,:blue],
-	base_rate=.50, data=Data[], current_trial=Data())
+	base_rate=.50, data=Data[], current_trial=Data(), trace=false)
 	cell_width = array_width/n_cells
 	@argcheck  cell_width > object_width
 	@argcheck n_color_distractors + n_shape_distractors + 1 <= n_cells^2
 	return Experiment(array_width, n_cells, n_trials, cell_width, object_width,
-	n_color_distractors, n_shape_distractors, colors, shapes, base_rate, data,current_trial)
+		n_color_distractors, n_shape_distractors, colors, shapes, base_rate, data,
+		current_trial, trace)
 end

@@ -1,11 +1,17 @@
-function run_model!(model, ex)
+function run_condition!(ex)
     for trial in 1:ex.n_trials
-        target,present = initialize_trial!(ex)
-        visicon = populate_visicon(ex, target..., present)
-        model = Model(target=target, iconic_memory=visicon)
-        orient!(model, ex)
-        search!(model, ex)
+        run_trial!(ex)
     end
+    return nothing
+end
+
+function run_trial!(ex)
+    target,present = initialize_trial!(ex)
+    visicon = populate_visicon(ex, target..., present)
+    model = Model(target=target, iconic_memory=visicon)
+    orient!(model, ex)
+    search!(model, ex)
+    return nothing
 end
 
 function search!(model, ex)
@@ -19,9 +25,12 @@ function search!(model, ex)
     add_data(ex)
 end
 
-function _search!(model, experiment)
-    data = experiment.current_trial
+function _search!(model, ex)
+    ex.trace ? println("\n start search sequence...") : nothing
+    print_trial(ex)
+    data = ex.current_trial
     status = find_object!(model)
+    ex.trace ? println("find object: $status") : nothing
     tΔ = cycle_time()
     model.current_time += tΔ
     if status == :error
@@ -33,7 +42,9 @@ function _search!(model, experiment)
     attend_object!(model)
     tΔ = cycle_time() + attend_time()
     model.current_time += tΔ
-    status = target_found(model, experiment)
+    status = target_found(model)
+    ex.trace ? println("attend object: $status") : nothing
+    ex.trace ? print_visual_buffer(model) : nothing
     if status == :present
         tΔ = cycle_time() + motor_time()
         model.current_time += tΔ
@@ -41,6 +52,7 @@ function _search!(model, experiment)
         return status
     end
     status = find_object!(model)
+    ex.trace ? println("find object again: $status") : nothing
     tΔ = cycle_time()
     model.current_time += tΔ
     if status == :error
@@ -51,7 +63,9 @@ function _search!(model, experiment)
     end
     attend_object!(model)
     tΔ = cycle_time() + attend_time()
-    status = target_found(model, experiment)
+    status = target_found(model)
+    ex.trace ? println("attend object again: $status") : nothing
+    ex.trace ? print_visual_buffer(model) : nothing
     if status == :present
         tΔ = cycle_time() + motor_time()
         model.current_time += tΔ
@@ -107,9 +121,11 @@ function attend_object!(model)
     return nothing
 end
 
-function target_found(model, experiment)
-    for (f,v) in pairs(model.target)
-        model.vision[1].features[f] != v ? (return :searching) : nothing
+target_found(model) = target_found(model.vision[1], model.target)
+
+function target_found(vo, target)
+    for (f,v) in pairs(target)
+        vo.features[f].value != v ? (return :searching) : nothing
     end
     return :present
 end
