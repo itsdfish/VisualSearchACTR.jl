@@ -21,6 +21,7 @@ function search!(model, ex)
         update_visibility!(model)
         compute_activations!(model)
         status = _search!(model, ex)
+        ex.visible ? update_window!(model, ex) : nothing
     end
     add_data(ex)
 end
@@ -33,6 +34,7 @@ function _search!(model, ex)
     status = find_object!(model)
     ex.trace ? println("finding object. status $status") : nothing
     tΔ = cycle_time()
+    ex.visible ? sleep(tΔ) : nothing
     model.current_time += tΔ
     if status == :error
         tΔ = cycle_time() + motor_time()
@@ -43,12 +45,18 @@ function _search!(model, ex)
     # Attending object in abstract-location
     attend_object!(model)
     tΔ = cycle_time() + attend_time()
+    ex.visible ? sleep(tΔ) : nothing
     model.current_time += tΔ
+    tΔ = cycle_time()
+    ex.visible ? sleep(tΔ) : nothing
+    model.current_time += tΔ
+    ex.visible ? sleep(tΔ) : nothing
     status = target_found(model)
     ex.trace ? println("attending object. status: $status") : nothing
     ex.trace ? print_visual_buffer(model) : nothing
     if status == :present
         tΔ = cycle_time() + motor_time()
+        ex.visible ? sleep(tΔ) : nothing
         model.current_time += tΔ
         add_response!(model, data, status)
         return status
@@ -56,11 +64,11 @@ function _search!(model, ex)
     return status
 end
 
-motor_time() = rand(Gamma(1, .1))
+motor_time() = rand(Gamma(2, .1))
 
-cycle_time() = rand(Gamma(1, .05))
+cycle_time() = rand(Gamma(2, .05))
 
-attend_time() = rand(Gamma(1, .085))
+attend_time() = rand(Gamma(2, .085))
 
 function add_response!(model, data, status)
     data.response = status

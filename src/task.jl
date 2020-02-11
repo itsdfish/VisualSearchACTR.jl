@@ -1,6 +1,6 @@
 function initialize_trial!(ex::Experiment)
     target = sample_target(ex)
-    rand() < ex.base_rate ? (present=true) : (present=false)
+    rand() < ex.base_rate ? (present=:present) : (present=:absent)
     ex.current_trial = Data()
     ex.current_trial.target_present = present
     ex.current_trial.target_shape = target.shape
@@ -16,7 +16,7 @@ function populate_visicon(ex, target_color, target_shape, present)
     visicon = [VisualObject(features=color_fun(), width=ex.object_width) for _ in 1:ex.n_color_distractors]
     temp = [VisualObject(features=shape_fun(), width=ex.object_width) for _ in 1:ex.n_shape_distractors]
     push!(visicon, temp...)
-    if present
+    if present == :present
         push!(visicon, VisualObject(features=populate_features((:color,:shape),
         [target_color,target_shape]), width=ex.object_width))
     end

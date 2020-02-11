@@ -44,7 +44,7 @@ mutable struct Model{A,B,T,F}
 end
 
 function Model(;iconic_memory, target, viewing_distance=30.0, current_time=0.0, focus=fill(0.0, 2),
-	topdownweight=.4, bottomup_weight=1.1, noise=.2, threshold=0.0, persistence=4.0, a_color=.104,
+	topdownweight=.4, bottomup_weight=1.1, noise=.36, threshold=0.0, persistence=4.0, a_color=.104,
 	b_color=.85, a_shape=.142, b_shape=.96)
 	abstract_location = similar(iconic_memory, 0)
 	vision = similar(iconic_memory, 0)
@@ -54,14 +54,14 @@ function Model(;iconic_memory, target, viewing_distance=30.0, current_time=0.0, 
 end
 
 mutable struct Data
-	target_present::Bool
+	target_present::Symbol
 	target_color::Symbol
 	target_shape::Symbol
 	response::Symbol
 	rt::Float64
 end
 
-Data() = Data(false, :_, :_, :_, 0.0)
+Data() = Data(:_, :_, :_, :_, 0.0)
 
 mutable struct Experiment{T1,T2}
 	array_width::Float64
@@ -82,7 +82,7 @@ mutable struct Experiment{T1,T2}
 	visible::Bool
 end
 
-function Experiment(;array_width=430.0, object_width=30.0, n_cells=8, n_trials=20,
+function Experiment(;array_width=430.0, object_width=32.0, n_cells=8, n_trials=20,
 	n_color_distractors=20, n_shape_distractors=20, shapes=[:q,:p], colors=[:red,:blue],
 	base_rate=.50, data=Data[], current_trial=Data(), trace=false, window=nothing, canvas=nothing,
 	visible=false)
