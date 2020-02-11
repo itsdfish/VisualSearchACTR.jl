@@ -44,8 +44,8 @@ mutable struct Model{A,B,T,F}
 end
 
 function Model(;iconic_memory, target, viewing_distance=30.0, current_time=0.0, focus=fill(0.0, 2),
-	topdownweight=.4, bottomup_weight=1.1, noise=.2, threshold=0.0, persistence=4.0, a_color=.104, b_color=.85,
-	 a_shape=.142, b_shape=.96)
+	topdownweight=.4, bottomup_weight=1.1, noise=.2, threshold=0.0, persistence=4.0, a_color=.104,
+	b_color=.85, a_shape=.142, b_shape=.96)
 	abstract_location = similar(iconic_memory, 0)
 	vision = similar(iconic_memory, 0)
 	acuity = (color = (a=a_color,b=b_color), shape = (a=a_shape,b=b_shape))
@@ -79,7 +79,7 @@ mutable struct Experiment
 	trace::Bool
 end
 
-function Experiment(;array_width=1080, object_width=35.0, n_cells=10, n_trials=20,
+function Experiment(;array_width=430, object_width=30.0, n_cells=8, n_trials=20,
 	n_color_distractors=20, n_shape_distractors=20, shapes=[:q,:p], colors=[:red,:blue],
 	base_rate=.50, data=Data[], current_trial=Data(), trace=false)
 	cell_width = array_width/n_cells

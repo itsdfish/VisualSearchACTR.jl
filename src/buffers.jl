@@ -1,17 +1,17 @@
-function run_condition!(ex)
+function run_condition!(ex; parms...)
     for trial in 1:ex.n_trials
-        run_trial!(ex)
+        run_trial!(ex; parms...)
     end
     return nothing
 end
 
-function run_trial!(ex)
+function run_trial!(ex; parms...)
     target,present = initialize_trial!(ex)
     visicon = populate_visicon(ex, target..., present)
-    model = Model(target=target, iconic_memory=visicon)
+    model = Model(target=target, iconic_memory=visicon, parms...)
     orient!(model, ex)
     search!(model, ex)
-    return nothing
+    return model
 end
 
 function search!(model, ex)
@@ -26,8 +26,8 @@ function search!(model, ex)
 end
 
 function _search!(model, ex)
-    ex.trace ? println("\n start search sequence...") : nothing
-    print_trial(ex)
+    ex.trace ? println("\nstart search sequence...") : nothing
+    ex.trace ? print_trial(ex) : nothing
     data = ex.current_trial
     status = find_object!(model)
     ex.trace ? println("find object: $status") : nothing
@@ -51,6 +51,9 @@ function _search!(model, ex)
         add_response!(model, data, status)
         return status
     end
+    update_decay!(model)
+    update_visibility!(model)
+    compute_activations!(model)
     status = find_object!(model)
     ex.trace ? println("find object again: $status") : nothing
     tΔ = cycle_time()
@@ -93,10 +96,11 @@ function add_data(ex)
 end
 
 function relevant_object(model, vo)
-    if vo.attended || !vo.visible
+    if !vo.visible || vo.attended
         return false
     end
     distance = compute_distance(model, vo)
+    # println("distance: ", distance, " threshold: ", model.distance_threshold)
     if distance > model.distance_threshold
         return false
     end
@@ -108,16 +112,21 @@ end
 
 function find_object!(model)
     visible_objects = filter(x->relevant_object(model, x), model.iconic_memory)
+    #println("number of visible objects: ", length(visible_objects))
     isempty(visible_objects) ? (return :error) : nothing
     model.abstract_location = max_activation(x->x.activation, visible_objects)
     return :searching
 end
 
-function attend_object!(model)
-    model.vision = model.abstract_location
-    model.vision[1].attended = true
-    model.focus = model.vision[1].location
-    # thresholds
+attend_object!(model) = attend_object!(model, model.abstract_location[1])
+
+function attend_object!(model, vo)
+    distance = compute_distance(model, vo)
+    model.vision = [vo]
+    vo.attended = true
+    model.focus = vo.location
+    model.activation_threshold = vo.topdown_activation
+    model.distance_threshold = distance
     return nothing
 end
 
@@ -262,10 +271,12 @@ function compute_angular_distance(model, object)
     return pixels_to_degrees(model, distance)
 end
 
-function compute_angular_size(model, object)
+compute_angular_size(model, object::VisualObject) = compute_angular_size(model, object.width)
+
+function compute_angular_size(model, width)
     ppi = 72 # pixels per inch
-    distance = compute_distance(model, object)*ppi
-    radians = 2*atan(object.width/(2*distance))
+    distance = model.viewing_distance*ppi
+    radians = 2*atan(width/(2*distance))
     return rad2deg(radians)
 end
 
@@ -277,7 +288,7 @@ end
 
 function pixels_to_degrees(model, pixels)
     ppi = 72 # pixels per inch
-    radians = atan(pixels./ppi, model.viewing_distance)
+    radians = atan(pixels/ppi, model.viewing_distance)
     return rad2deg(radians)
 end
 

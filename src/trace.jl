@@ -3,7 +3,7 @@ function print_trial(ex)
     println("trial info: ")
     println("   target present: ", data.target_present)
     println("   color: ", data.target_color)
-    println("  shape: ", data.target_shape)
+    println("   shape: ", data.target_shape)
 end
 
 function print_visual_buffer(model)
