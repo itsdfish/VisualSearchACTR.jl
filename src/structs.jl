@@ -63,7 +63,7 @@ end
 
 Data() = Data(false, :_, :_, :_, 0.0)
 
-mutable struct Experiment
+mutable struct Experiment{T1,T2}
 	array_width::Float64
 	n_cells::Int64
 	n_trials::Int64
@@ -77,15 +77,34 @@ mutable struct Experiment
 	data::Vector{Data}
 	current_trial::Data
 	trace::Bool
+	window::T1
+	canvas::T2
+	visible::Bool
 end
 
-function Experiment(;array_width=430, object_width=30.0, n_cells=8, n_trials=20,
+function Experiment(;array_width=430.0, object_width=30.0, n_cells=8, n_trials=20,
 	n_color_distractors=20, n_shape_distractors=20, shapes=[:q,:p], colors=[:red,:blue],
-	base_rate=.50, data=Data[], current_trial=Data(), trace=false)
+	base_rate=.50, data=Data[], current_trial=Data(), trace=false, window=nothing, canvas=nothing,
+	visible=false)
 	cell_width = array_width/n_cells
 	@argcheck  cell_width > object_width
 	@argcheck n_color_distractors + n_shape_distractors + 1 <= n_cells^2
+	visible ? ((canvas,window) = setup_window(array_width)) : nothing
+    visible ? Gtk.showall(window) : nothing
 	return Experiment(array_width, n_cells, n_trials, cell_width, object_width,
 		n_color_distractors, n_shape_distractors, colors, shapes, base_rate, data,
-		current_trial, trace)
+		current_trial, trace, window, canvas, visible)
+end
+
+function setup_window(array_width)
+	canvas = @GtkCanvas()
+    window = GtkWindow(canvas, "PAAV", array_width, array_width)
+    Gtk.visible(window, true)
+    @guarded draw(canvas) do widget
+        ctx = getgc(canvas)
+        rectangle(ctx, 0.0, 0.0, array_width, array_width)
+        set_source_rgb(ctx, .65, .65, .65)
+        fill(ctx)
+    end
+	return canvas,window
 end

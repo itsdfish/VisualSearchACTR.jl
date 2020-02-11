@@ -26,11 +26,12 @@ function search!(model, ex)
 end
 
 function _search!(model, ex)
+    # Finding object in abstract-location
     ex.trace ? println("\nstart search sequence...") : nothing
     ex.trace ? print_trial(ex) : nothing
     data = ex.current_trial
     status = find_object!(model)
-    ex.trace ? println("find object: $status") : nothing
+    ex.trace ? println("finding object. status $status") : nothing
     tΔ = cycle_time()
     model.current_time += tΔ
     if status == :error
@@ -39,35 +40,12 @@ function _search!(model, ex)
         add_response!(model, data, :absent)
         return status
     end
+    # Attending object in abstract-location
     attend_object!(model)
     tΔ = cycle_time() + attend_time()
     model.current_time += tΔ
     status = target_found(model)
-    ex.trace ? println("attend object: $status") : nothing
-    ex.trace ? print_visual_buffer(model) : nothing
-    if status == :present
-        tΔ = cycle_time() + motor_time()
-        model.current_time += tΔ
-        add_response!(model, data, status)
-        return status
-    end
-    update_decay!(model)
-    update_visibility!(model)
-    compute_activations!(model)
-    status = find_object!(model)
-    ex.trace ? println("find object again: $status") : nothing
-    tΔ = cycle_time()
-    model.current_time += tΔ
-    if status == :error
-        tΔ = cycle_time() + motor_time()
-        model.current_time += tΔ
-        add_response!(model, data, :absent)
-        return status
-    end
-    attend_object!(model)
-    tΔ = cycle_time() + attend_time()
-    status = target_found(model)
-    ex.trace ? println("attend object again: $status") : nothing
+    ex.trace ? println("attending object. status: $status") : nothing
     ex.trace ? print_visual_buffer(model) : nothing
     if status == :present
         tΔ = cycle_time() + motor_time()

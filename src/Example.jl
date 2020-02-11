@@ -1,6 +1,6 @@
 using Revise, PAAV, Plots
 
-experiment = Experiment()
+experiment = Experiment(visible=true)
 target,present = initialize_trial!(experiment)
 @time visicon = populate_visicon(experiment, target..., present)
 model = Model(target=target, iconic_memory=visicon)
