@@ -20,10 +20,12 @@ mutable struct VisualObject{F}
 	bottomup_activation::Float64
 	topdown_activation::Float64
 	location::Vector{Float64}
+	attend_time::Float64
 end
 
-function VisualObject(;features, attended=false, visible=false, width=0.0, location=[0.0,0.0])
-	return VisualObject(features, attended, visible, width, 0.0, 0.0, 0.0, location)
+function VisualObject(;features, attended=false, visible=false, width=0.0, location=[0.0,0.0],
+		attend_time=0.0)
+	return VisualObject(features, attended, visible, width, 0.0, 0.0, 0.0, location, attend_time)
 end
 
 mutable struct Model{A,B,T,F}

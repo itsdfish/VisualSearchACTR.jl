@@ -1,6 +1,11 @@
 using Revise, PAAV, Plots, DataFrames, Statistics
-
-experiment = Experiment(n_color_distractors=20, n_shape_distractors=20, n_trials=1000,
+# add finsts
+# add fixation
+# highlight target
+# visualize only visible features
+# visualize attended objects
+# color text for trace
+experiment = Experiment(n_color_distractors=15, n_shape_distractors=15, n_trials=1000,
     trace=false, visible=true)
 run_condition!(experiment)
 df = DataFrame(experiment.data)

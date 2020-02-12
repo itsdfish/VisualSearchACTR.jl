@@ -19,6 +19,7 @@ function search!(model, ex)
     while status == :searching
         # update_finst
         update_decay!(model)
+        update_finst!(model)
         update_visibility!(model)
         compute_activations!(model)
         ex.visible ? update_window!(model, ex) : nothing
@@ -162,6 +163,32 @@ function update_decay!(model, object)
             f.visible = false
             f.fixation_time = 0.0
         end
+    end
+    return nothing
+end
+
+function update_finst!(model)
+    attended_objects = filter(x->x.attended, model.iconic_memory)
+    isempty(attended_objects) ? (return) : nothing
+    map(x->update_finst_span!(model, x), attended_objects)
+    update_n_finst!(model, attended_objects)
+end
+
+function update_finst_span!(model, vo)
+    if model.finst_span < (model.current_time - vo.attend_time)
+        vo.attended = false
+        vo.attend_time = 0.0
+    end
+    return nothing
+end
+
+function update_n_finst!(model, vos)
+    N = length(vos) - model.n_finst
+    N <= 0 ? (return) : nothing
+    sort!(vos, by=x->x.attend_time)
+    for i in 1:N
+        vos[i].attended = false
+        vos[i].attend_time = 0.0
     end
     return nothing
 end
