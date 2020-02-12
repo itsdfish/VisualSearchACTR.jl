@@ -86,7 +86,7 @@ mutable struct Experiment{T1,T2}
 end
 
 function Experiment(;array_width=430.0, object_width=32.0, n_cells=8, n_trials=20,
-	n_color_distractors=20, n_shape_distractors=20, shapes=[:i,:o], colors=[:red,:blue],
+	n_color_distractors=20, n_shape_distractors=20, shapes=[:p,:q], colors=[:red,:blue],
 	base_rate=.50, data=Data[], current_trial=Data(), trace=false, window=nothing, canvas=nothing,
 	visible=false, speed=1.0)
 	cell_width = array_width/n_cells

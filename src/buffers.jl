@@ -58,21 +58,21 @@ end
 function motor_time!(model, ex)
      tΔ = rand(Gamma(2, .1))
      model.current_time += tΔ
-     ex.visible ? sleep(tΔ*ex.speed) : nothing
+     ex.visible ? sleep(tΔ/ex.speed) : nothing
      return nothing
  end
 
 function cycle_time!(model, ex)
   tΔ = rand(Gamma(2, .05))
   model.current_time += tΔ
-  ex.visible ? sleep(tΔ*ex.speed) : nothing
+  ex.visible ? sleep(tΔ/ex.speed) : nothing
   return nothing
 end
 
 function attend_time!(model, ex)
    tΔ = rand(Gamma(2, .085))
    model.current_time += tΔ
-   ex.visible ? sleep(tΔ*ex.speed) : nothing
+   ex.visible ? sleep(tΔ/ex.speed) : nothing
    return nothing
 end
 

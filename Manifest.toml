@@ -7,10 +7,9 @@ uuid = "7b86fcea-f67b-53e1-809c-8f1719c154e8"
 version = "2.34.1+2"
 
 [[ArgCheck]]
-deps = ["Random"]
-git-tree-sha1 = "dab25d711a1dedb707a55dbc1eb9fd578f76ff32"
+git-tree-sha1 = "e14de95bcfacd85e00f5369958a38bb72827bce2"
 uuid = "dce04be8-c92d-5529-be00-80e4d2c0e197"
-version = "1.0.1"
+version = "1.1.0"
 
 [[Arpack]]
 deps = ["Arpack_jll", "Libdl", "LinearAlgebra"]
@@ -50,6 +49,12 @@ deps = ["Bzip2_jll", "Fontconfig_jll", "FreeType2_jll", "Glib_jll", "LZO_jll", "
 git-tree-sha1 = "a414ebdc4bd60b0fda62797f47c7409670c4ad1c"
 uuid = "83423d85-b0ee-5818-9007-b63ccbeb887a"
 version = "1.16.0+2"
+
+[[ColorSchemes]]
+deps = ["ColorTypes", "Colors", "FixedPointNumbers", "Random", "Test"]
+git-tree-sha1 = "f876ee572cea8d066b3dd5b903efacdea4072f6b"
+uuid = "35d6a980-a343-548e-a6ea-1d62b119f2f4"
+version = "3.5.0"
 
 [[ColorTypes]]
 deps = ["FixedPointNumbers", "Random"]
