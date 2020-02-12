@@ -8,7 +8,7 @@ end
 function run_trial!(ex; parms...)
     target,present = initialize_trial!(ex)
     visicon = populate_visicon(ex, target..., present)
-    model = Model(target=target, iconic_memory=visicon, parms...)
+    model = Model(;target=target, iconic_memory=visicon, parms...)
     orient!(model, ex)
     search!(model, ex)
     return model
@@ -21,6 +21,7 @@ function search!(model, ex)
         update_decay!(model)
         update_visibility!(model)
         compute_activations!(model)
+        ex.visible ? update_window!(model, ex) : nothing
         status = _search!(model, ex)
         ex.visible ? update_window!(model, ex) : nothing
     end
@@ -108,8 +109,9 @@ function find_object!(model, ex)
         ex.trace ? println(get_time(model), " finding object. status: error") : nothing
         return :error
     end
-    model.abstract_location = max_activation(x->x.activation, visible_objects)
+    model.abstract_location = max_activation(visible_objects)
     ex.trace ? println(get_time(model), " finding object. status: searching") : nothing
+    mn,mx = get_min_max(visible_objects)
     return :searching
 end
 
@@ -138,12 +140,13 @@ function target_found(model, vo, ex, target)
     return :present
 end
 
-function max_activation(f, vos)
+function max_activation(vos)
     max_vo = similar(vos, 1)
     mv = -Inf
     for vo in vos
         if vo.activation > mv
             max_vo[1] = vo
+            mv = vo.activation
         end
     end
     return max_vo

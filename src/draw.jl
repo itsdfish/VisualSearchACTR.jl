@@ -38,7 +38,6 @@ function draw_focus!(model, ex)
     c = ex.canvas
     w = model.iconic_memory[1].width
     x,y = model.focus
-    dump(model.vision[1])
     @guarded draw(c) do widget
         ctx = getgc(c)
         circle(ctx, x, y, w/2)
@@ -71,11 +70,13 @@ get_text(vo) = string(vo.features.shape.value)
 
 get_color(vo) = Colors.parse(Colorant, string(vo.features.color.value))
 
-function get_min_max(model)
+get_min_max(model::Model) = get_min_max(model.iconic_memory)
+
+function get_min_max(iconic_memory)
     mn,mx = Inf,-Inf
-    for vo in model.iconic_memory
-        vo.activation < mn ? (mn = vo.activation) : nothing
-        vo.activation > mx ? (mx = vo.activation) : nothing
+    for vo in iconic_memory
+        vo.activation < mn ? (mn=vo.activation; continue) : nothing
+        vo.activation > mx ? (mx=vo.activation; continue) : nothing
     end
     return mn,mx
 end
