@@ -17,6 +17,7 @@ end
 function search!(model, ex)
     status = :searching
     while status == :searching
+        # update_finst
         update_decay!(model)
         update_visibility!(model)
         compute_activations!(model)
@@ -28,47 +29,52 @@ end
 
 function _search!(model, ex)
     # Finding object in abstract-location
-    ex.trace ? println("\nstart search sequence...") : nothing
+    ex.trace ? println("\n", get_time(model), " start search sequence...") : nothing
     ex.trace ? print_trial(ex) : nothing
     data = ex.current_trial
-    status = find_object!(model)
-    ex.trace ? println("finding object. status $status") : nothing
-    tΔ = cycle_time()
-    ex.visible ? sleep(tΔ) : nothing
-    model.current_time += tΔ
+    status = find_object!(model, ex)
+    cycle_time!(model, ex)
     if status == :error
-        tΔ = cycle_time() + motor_time()
-        model.current_time += tΔ
+        cycle_time!(model, ex)
+        motor_time!(model, ex)
         add_response!(model, data, :absent)
         return status
     end
     # Attending object in abstract-location
-    attend_object!(model)
-    tΔ = cycle_time() + attend_time()
-    ex.visible ? sleep(tΔ) : nothing
-    model.current_time += tΔ
-    tΔ = cycle_time()
-    ex.visible ? sleep(tΔ) : nothing
-    model.current_time += tΔ
-    ex.visible ? sleep(tΔ) : nothing
-    status = target_found(model)
-    ex.trace ? println("attending object. status: $status") : nothing
-    ex.trace ? print_visual_buffer(model) : nothing
+    attend_object!(model, ex)
+    cycle_time!(model, ex)
+    attend_time!(model, ex)
+    cycle_time!(model, ex)
+    status = target_found(model, ex)
     if status == :present
-        tΔ = cycle_time() + motor_time()
-        ex.visible ? sleep(tΔ) : nothing
-        model.current_time += tΔ
+        cycle_time!(model, ex)
+        motor_time!(model, ex)
         add_response!(model, data, status)
         return status
     end
     return status
 end
 
-motor_time() = rand(Gamma(2, .1))
+function motor_time!(model, ex)
+     tΔ = rand(Gamma(2, .1))
+     model.current_time += tΔ
+     ex.visible ? sleep(tΔ*ex.speed) : nothing
+     return nothing
+ end
 
-cycle_time() = rand(Gamma(2, .05))
+function cycle_time!(model, ex)
+  tΔ = rand(Gamma(2, .05))
+  model.current_time += tΔ
+  ex.visible ? sleep(tΔ*ex.speed) : nothing
+  return nothing
+end
 
-attend_time() = rand(Gamma(2, .085))
+function attend_time!(model, ex)
+   tΔ = rand(Gamma(2, .085))
+   model.current_time += tΔ
+   ex.visible ? sleep(tΔ*ex.speed) : nothing
+   return nothing
+end
 
 function add_response!(model, data, status)
     data.response = status
@@ -96,32 +102,39 @@ function relevant_object(model, vo)
     return true
 end
 
-function find_object!(model)
+function find_object!(model, ex)
     visible_objects = filter(x->relevant_object(model, x), model.iconic_memory)
-    #println("number of visible objects: ", length(visible_objects))
-    isempty(visible_objects) ? (return :error) : nothing
+    if isempty(visible_objects)
+        ex.trace ? println(get_time(model), " finding object. status: error") : nothing
+        return :error
+    end
     model.abstract_location = max_activation(x->x.activation, visible_objects)
+    ex.trace ? println(get_time(model), " finding object. status: searching") : nothing
     return :searching
 end
 
-attend_object!(model) = attend_object!(model, model.abstract_location[1])
+attend_object!(model, ex) = attend_object!(model, ex, model.abstract_location[1])
 
-function attend_object!(model, vo)
+function attend_object!(model, ex, vo)
+    ex.trace ? println(get_time(model), " attending object.") : nothing
     distance = compute_distance(model, vo)
     model.vision = [vo]
     vo.attended = true
     model.focus = vo.location
     model.activation_threshold = vo.topdown_activation
     model.distance_threshold = distance
+    ex.trace ? print_visual_buffer(model) : nothing
     return nothing
 end
 
-target_found(model) = target_found(model.vision[1], model.target)
+target_found(model, ex) = target_found(model, model.vision[1], ex, model.target)
 
-function target_found(vo, target)
+function target_found(model, vo, ex, target)
+    print_trace(v) = ex.trace ? println(get_time(model), " target $v") : nothing
     for (f,v) in pairs(target)
-        vo.features[f].value != v ? (return :searching) : nothing
+        vo.features[f].value != v ? (print_trace("not found");return :searching) : nothing
     end
+    print_trace("found")
     return :present
 end
 

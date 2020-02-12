@@ -41,16 +41,18 @@ mutable struct Model{A,B,T,F}
 	distance_threshold::Float64
 	persistance::Float64
 	acuity::A
+	n_finst::Int64
+	finst_span::Float64
 end
 
 function Model(;iconic_memory, target, viewing_distance=30.0, current_time=0.0, focus=fill(0.0, 2),
 	topdownweight=.4, bottomup_weight=1.1, noise=.36, threshold=0.0, persistence=4.0, a_color=.104,
-	b_color=.85, a_shape=.142, b_shape=.96)
+	b_color=.85, a_shape=.142, b_shape=.96, n_finst=4, finst_span=3.0)
 	abstract_location = similar(iconic_memory, 0)
 	vision = similar(iconic_memory, 0)
 	acuity = (color = (a=a_color,b=b_color), shape = (a=a_shape,b=b_shape))
 	return Model(iconic_memory, target, abstract_location, vision, viewing_distance, current_time, focus,
-		topdownweight, bottomup_weight, noise, -Inf, Inf, persistence, acuity)
+		topdownweight, bottomup_weight, noise, -Inf, Inf, persistence, acuity, n_finst, finst_span)
 end
 
 mutable struct Data
@@ -80,12 +82,13 @@ mutable struct Experiment{T1,T2}
 	window::T1
 	canvas::T2
 	visible::Bool
+	speed::Float64
 end
 
 function Experiment(;array_width=430.0, object_width=32.0, n_cells=8, n_trials=20,
-	n_color_distractors=20, n_shape_distractors=20, shapes=[:q,:p], colors=[:red,:blue],
+	n_color_distractors=20, n_shape_distractors=20, shapes=[:i,:o], colors=[:red,:blue],
 	base_rate=.50, data=Data[], current_trial=Data(), trace=false, window=nothing, canvas=nothing,
-	visible=false)
+	visible=false, speed=1.0)
 	cell_width = array_width/n_cells
 	@argcheck  cell_width > object_width
 	@argcheck n_color_distractors + n_shape_distractors + 1 <= n_cells^2
@@ -93,7 +96,7 @@ function Experiment(;array_width=430.0, object_width=32.0, n_cells=8, n_trials=2
     visible ? Gtk.showall(window) : nothing
 	return Experiment(array_width, n_cells, n_trials, cell_width, object_width,
 		n_color_distractors, n_shape_distractors, colors, shapes, base_rate, data,
-		current_trial, trace, window, canvas, visible)
+		current_trial, trace, window, canvas, visible, 1/speed)
 end
 
 function setup_window(array_width)

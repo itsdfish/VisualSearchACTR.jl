@@ -13,3 +13,7 @@ function print_visual_buffer(model)
     println("   shape: ", object.features.shape.value)
     println("   location: ", round.(object.location))
 end
+
+function get_time(model)
+    return round(model.current_time, digits=3)
+end
