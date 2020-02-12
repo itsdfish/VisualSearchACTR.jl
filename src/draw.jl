@@ -8,6 +8,13 @@ function update_window!(model, ex)
     end
 end
 
+function draw_cross!(model, ex)
+    refresh!(ex)
+    draw_focus!(model, ex)
+    ex.visible ? sleep(.30/ex.speed) : nothing
+    return nothing
+end
+
 function draw_object!(ex, vo, heat)
     c = ex.canvas
     w = vo.width

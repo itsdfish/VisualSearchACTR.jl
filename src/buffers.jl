@@ -10,6 +10,7 @@ function run_trial!(ex; parms...)
     visicon = populate_visicon(ex, target..., present)
     model = Model(;target=target, iconic_memory=visicon, parms...)
     orient!(model, ex)
+    ex.visible ? draw_cross!(model, ex) : nothing
     search!(model, ex)
     return model
 end
@@ -34,8 +35,8 @@ function _search!(model, ex)
     ex.trace ? println("\n", get_time(model), " start search sequence...") : nothing
     ex.trace ? print_trial(ex) : nothing
     data = ex.current_trial
-    status = find_object!(model, ex)
     cycle_time!(model, ex)
+    status = find_object!(model, ex)
     if status == :error
         cycle_time!(model, ex)
         motor_time!(model, ex)
@@ -43,9 +44,9 @@ function _search!(model, ex)
         return status
     end
     # Attending object in abstract-location
-    attend_object!(model, ex)
     cycle_time!(model, ex)
     attend_time!(model, ex)
+    attend_object!(model, ex)
     cycle_time!(model, ex)
     status = target_found(model, ex)
     if status == :present
@@ -123,6 +124,7 @@ function attend_object!(model, ex, vo)
     distance = compute_distance(model, vo)
     model.vision = [vo]
     vo.attended = true
+    vo.attend_time = model.current_time
     model.focus = vo.location
     model.activation_threshold = vo.topdown_activation
     model.distance_threshold = distance
