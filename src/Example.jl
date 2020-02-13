@@ -8,13 +8,6 @@ experiment = Experiment(set_size=10,  n_trials=10^4,
     trace=false, visible=true)
 run_condition!(experiment)
 df = DataFrame(experiment.data)
-hit_rate = mean(df[:,:target_present] .== df[:,:response])
-temp = by(df, [:target_present,:response], :rt=>mean)
-temp[!,:distractors] .= 2*n
-temp[!,:hit_rate] .= hit_rate
-push!(results, temp)
-all_results = vcat(results...)
-plot()
 
 
 

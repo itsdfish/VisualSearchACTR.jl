@@ -30,11 +30,13 @@ function conjunctive_set(ex, target_color, target_shape, present)
     distractor_color = setdiff(ex.colors, [target_color])[1]
     distractor_shape = setdiff(ex.shapes, [target_shape])[1]
     n = round(Int, ex.set_size/2)
+    n = max(n, 1)
     color_fun() = populate_features((:color,:shape), [distractor_color,target_shape])
     shape_fun() = populate_features((:color,:shape), [target_color,distractor_shape])
     visicon = [VisualObject(features=color_fun(), width=get_width(ex)) for _ in 1:n]
     temp = [VisualObject(features=shape_fun(), width=get_width(ex)) for _ in 1:n]
     push!(visicon, temp...)
+    n == 1 ? (visicon = [rand(visicon)]) : nothing
     if present == :present
         vo = rand(visicon)
         vo.features = populate_features((:color,:shape),

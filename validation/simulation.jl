@@ -1,7 +1,8 @@
-function conjunctive_search(n_objects; args...)
+function run_simulation(set_sizes; fun=conjunctive_set)
     results = DataFrame[]
-    for n in n_objects
-        experiment = Experiment(set_size=n, populate_visicon=conjunctive_set, n_trials=10^4)
+    for n in set_sizes
+        experiment = Experiment(set_size=n, populate_visicon=fun,
+            n_trials=10^4)
         run_condition!(experiment)
         df = DataFrame(experiment.data)
         hit_rate = mean(df[:,:target_present] .== df[:,:response])
