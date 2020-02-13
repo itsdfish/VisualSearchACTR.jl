@@ -7,11 +7,12 @@ end
 
 function run_trial!(ex; parms...)
     target,present = initialize_trial!(ex)
-    visicon = populate_visicon(ex, target..., present)
+    visicon = ex.populate_visicon(ex, target..., present)
     model = Model(;target=target, iconic_memory=visicon, parms...)
     orient!(model, ex)
     ex.visible ? draw_cross!(model, ex) : nothing
     search!(model, ex)
+    #return nothing
     return model
 end
 
@@ -28,6 +29,7 @@ function search!(model, ex)
         ex.visible ? update_window!(model, ex) : nothing
     end
     add_data(ex)
+    return nothing
 end
 
 function _search!(model, ex)
@@ -127,7 +129,9 @@ function attend_object!(model, ex, vo)
     vo.attend_time = model.current_time
     model.focus = vo.location
     model.activation_threshold = vo.topdown_activation
+    #if model.distance_threshold == Inf
     model.distance_threshold = distance
+    #end
     ex.trace ? print_visual_buffer(model) : nothing
     return nothing
 end

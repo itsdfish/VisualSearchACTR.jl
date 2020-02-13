@@ -89,5 +89,6 @@ function get_min_max(iconic_memory)
 end
 
 function compute_heat(vo, lb, ub)
+    lb == ub ? (return 1.0) : nothing
     return (vo.activation-lb)/(ub-lb)
 end

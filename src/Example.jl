@@ -1,15 +1,20 @@
-using Revise, PAAV, Plots, DataFrames, Statistics
+using Revise, PAAV, Plots, DataFrames, Statistics, StatsPlots
 # highlight target
 # visualize only visible features
 # visualize attended objects
 # color text for trace
-experiment = Experiment(n_color_distractors=2, n_shape_distractors=2, n_trials=1000,
+
+experiment = Experiment(set_size=10,  n_trials=10^4,
     trace=false, visible=true)
 run_condition!(experiment)
 df = DataFrame(experiment.data)
-results = by(df, [:target_present,:response], :rt=>mean)
-println(results)
-
+hit_rate = mean(df[:,:target_present] .== df[:,:response])
+temp = by(df, [:target_present,:response], :rt=>mean)
+temp[!,:distractors] .= 2*n
+temp[!,:hit_rate] .= hit_rate
+push!(results, temp)
+all_results = vcat(results...)
+plot()
 
 
 

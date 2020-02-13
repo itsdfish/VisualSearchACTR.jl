@@ -8,17 +8,50 @@ function initialize_trial!(ex::Experiment)
     return target,present
 end
 
-function populate_visicon(ex, target_color, target_shape, present)
+get_width(ex) = ex.object_width
+
+function conjunctive_ratio(ex, target_color, target_shape, present)
     distractor_color = setdiff(ex.colors, [target_color])[1]
     distractor_shape = setdiff(ex.shapes, [target_shape])[1]
     color_fun() = populate_features((:color,:shape), [distractor_color,target_shape])
     shape_fun() = populate_features((:color,:shape), [target_color,distractor_shape])
-    visicon = [VisualObject(features=color_fun(), width=ex.object_width) for _ in 1:ex.n_color_distractors]
-    temp = [VisualObject(features=shape_fun(), width=ex.object_width) for _ in 1:ex.n_shape_distractors]
+    visicon = [VisualObject(features=color_fun(), width=get_width(ex)) for _ in 1:ex.n_color_distractors]
+    temp = [VisualObject(features=shape_fun(), width=get_width(ex)) for _ in 1:ex.n_shape_distractors]
     push!(visicon, temp...)
     if present == :present
         push!(visicon, VisualObject(features=populate_features((:color,:shape),
-        [target_color,target_shape]), width=ex.object_width))
+        [target_color,target_shape]), width=get_width(ex)))
+    end
+    set_locations!(ex, visicon)
+    return visicon
+end
+
+function conjunctive_set(ex, target_color, target_shape, present)
+    distractor_color = setdiff(ex.colors, [target_color])[1]
+    distractor_shape = setdiff(ex.shapes, [target_shape])[1]
+    n = round(Int, ex.set_size/2)
+    color_fun() = populate_features((:color,:shape), [distractor_color,target_shape])
+    shape_fun() = populate_features((:color,:shape), [target_color,distractor_shape])
+    visicon = [VisualObject(features=color_fun(), width=get_width(ex)) for _ in 1:n]
+    temp = [VisualObject(features=shape_fun(), width=get_width(ex)) for _ in 1:n]
+    push!(visicon, temp...)
+    if present == :present
+        vo = rand(visicon)
+        vo.features = populate_features((:color,:shape),
+        [target_color,target_shape])
+    end
+    set_locations!(ex, visicon)
+    return visicon
+end
+
+function feature_set(ex, target_color, target_shape, present)
+    distractor_color = setdiff(ex.colors, [target_color])[1]
+    color_fun() = populate_features((:color,:shape), [distractor_color,target_shape])
+    visicon = [VisualObject(features=color_fun(), width=get_width(ex)) for _ in 1:ex.set_size]
+    if present == :present
+        vo = rand(visicon)
+        vo.features = populate_features((:color,:shape),
+        [target_color,target_shape])
     end
     set_locations!(ex, visicon)
     return visicon

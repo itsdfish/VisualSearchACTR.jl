@@ -67,7 +67,7 @@ end
 
 Data() = Data(:_, :_, :_, :_, 0.0)
 
-mutable struct Experiment{T1,T2}
+mutable struct Experiment{T1,T2,F}
 	array_width::Float64
 	n_cells::Int64
 	n_trials::Int64
@@ -75,6 +75,7 @@ mutable struct Experiment{T1,T2}
 	object_width::Float64
 	n_color_distractors::Int64
 	n_shape_distractors::Int64
+	set_size::Int64
 	colors::Vector{Symbol}
 	shapes::Vector{Symbol}
 	base_rate::Float64
@@ -85,20 +86,21 @@ mutable struct Experiment{T1,T2}
 	canvas::T2
 	visible::Bool
 	speed::Float64
+	populate_visicon::F
 end
 
 function Experiment(;array_width=430.0, object_width=32.0, n_cells=8, n_trials=20,
-	n_color_distractors=20, n_shape_distractors=20, shapes=[:p,:q], colors=[:red,:blue],
+	n_color_distractors=20, set_size=40, n_shape_distractors=20, shapes=[:p,:q], colors=[:red,:blue],
 	base_rate=.50, data=Data[], current_trial=Data(), trace=false, window=nothing, canvas=nothing,
-	visible=false, speed=1.0)
+	visible=false, speed=1.0, populate_visicon=conjunctive_ratio)
 	cell_width = array_width/n_cells
 	@argcheck  cell_width > object_width
 	@argcheck n_color_distractors + n_shape_distractors + 1 <= n_cells^2
 	visible ? ((canvas,window) = setup_window(array_width)) : nothing
     visible ? Gtk.showall(window) : nothing
 	return Experiment(array_width, n_cells, n_trials, cell_width, object_width,
-		n_color_distractors, n_shape_distractors, colors, shapes, base_rate, data,
-		current_trial, trace, window, canvas, visible, 1/speed)
+		n_color_distractors, n_shape_distractors, set_size, colors, shapes, base_rate,
+		data, current_trial, trace, window, canvas, visible, 1/speed, populate_visicon)
 end
 
 function setup_window(array_width)
