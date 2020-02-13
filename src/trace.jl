@@ -2,15 +2,16 @@ function print_trial(ex)
     data = ex.current_trial
     println("trial info: ")
     println("   target present: ", data.target_present)
-    println("   color: ", data.target_color)
-    println("   shape: ", data.target_shape)
+    println("   stimulus: ", Crayon(foreground=data.target_color), data.target_shape)
+    print(Crayon(foreground=:default))
 end
 
 function print_visual_buffer(model)
     object = model.vision[1]
-    println("visual object: ")
-    println("   color: ", object.features.color.value)
-    println("   shape: ", object.features.shape.value)
+    println("visual buffer: ")
+    println("   stimulus: ", Crayon(foreground=object.features.color.value),
+        object.features.shape.value)
+    print(Crayon(foreground=:default))
     println("   location: ", round.(object.location))
 end
 

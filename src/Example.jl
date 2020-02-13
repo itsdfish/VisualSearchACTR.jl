@@ -5,7 +5,7 @@ using Revise, PAAV, Plots, DataFrames, Statistics, StatsPlots
 # color text for trace
 
 experiment = Experiment(set_size=10,  n_trials=10^4,
-    trace=false, visible=true)
+    trace=true, visible=true)
 run_condition!(experiment)
 df = DataFrame(experiment.data)
 

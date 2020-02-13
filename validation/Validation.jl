@@ -14,12 +14,12 @@ conj_results = run_simulation(set_sizes, fun=conjunctive_set)
 
 pyplot()
 @df conj_results plot(:distractors, :hit_rate, grid=false,
-    ylims=(.5,1), leg=false,ylabel="Hit Rate", xlabel="N Distractors",
+    ylims=(.5,1), leg=false,ylabel="Hit Rate", xlabel="Set Size",
     color=:grey, linewidth=2, xaxis=font(10), yaxis=font(10), size=(600,400))
 savefig("Conjunctive_hit_rate.eps")
 
 @df conj_results plot(:distractors, :rt_mean, group=(:target_present,:response), grid=false,
-     ylims=(0,2), linewidth=2, leg=true, ylabel="Mean RT (seconds)", xlabel="N Distractors",
+     ylims=(0,2), linewidth=2, leg=true, ylabel="Mean RT (seconds)", xlabel="Set Size",
      size=(600,400))
 savefig("Conjunctive_set_size.eps")
 
@@ -36,12 +36,12 @@ feature_results = run_simulation(set_sizes, fun=feature_set)
 
 pyplot()
 hit = @df feature_results plot(:distractors, :hit_rate, grid=false,
-    ylims=(.5,1), leg=false,ylabel="Hit Rate", xlabel="N Distractors",
+    ylims=(.5,1), leg=false,ylabel="Hit Rate", xlabel="Set Size",
     color=:grey, linewidth=2, xaxis=font(10), yaxis=font(10), size=(600,400))
 savefig("Feature_hit_rate.eps")
 
 @df feature_results plot(:distractors, :rt_mean, group=(:target_present,:response), grid=false,
-     ylims=(0,2), linewidth=2, leg=true, ylabel="Mean RT (seconds)", xlabel="N Distractors",
+     ylims=(0,2), linewidth=2, leg=true, ylabel="Mean RT (seconds)", xlabel="Set Size",
      size=(600,400))
 savefig("Feature_set_size.eps")
 

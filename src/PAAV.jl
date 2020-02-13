@@ -1,5 +1,6 @@
 module PAAV
     using Distributions, StatsBase, ArgCheck, Gtk, Graphics, Cairo, Colors, ColorSchemes
+    using Crayons
     export Experiment, Model, VisualObject, Feature, Data
     export populate_features, populate_visicon, initialize_trial!
     export feature_visibility!, compute_angular_distance, compute_acuity_threshold
