@@ -1,8 +1,6 @@
 using Revise, PAAV, Plots, DataFrames, Statistics, StatsPlots
-# highlight target
 # visualize only visible features
-# visualize attended objects
-# color text for trace
+# add emma
 
 experiment = Experiment(set_size=10,  n_trials=10^4,
     trace=true, visible=true)

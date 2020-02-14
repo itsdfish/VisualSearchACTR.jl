@@ -21,11 +21,13 @@ mutable struct VisualObject{F}
 	topdown_activation::Float64
 	location::Vector{Float64}
 	attend_time::Float64
+	target::Bool
 end
 
 function VisualObject(;features, attended=false, visible=false, width=0.0, location=[0.0,0.0],
-		attend_time=0.0)
-	return VisualObject(features, attended, visible, width, 0.0, 0.0, 0.0, location, attend_time)
+		attend_time=0.0, target=false)
+	return VisualObject(features, attended, visible, width, 0.0, 0.0, 0.0, location, attend_time,
+		target)
 end
 
 mutable struct Model{A,B,T,F}
@@ -110,7 +112,7 @@ function setup_window(array_width)
     @guarded draw(canvas) do widget
         ctx = getgc(canvas)
         rectangle(ctx, 0.0, 0.0, array_width, array_width)
-        set_source_rgb(ctx, .65, .65, .65)
+        set_source_rgb(ctx, .8, .8, .8)
         fill(ctx)
     end
 	return canvas,window

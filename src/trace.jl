@@ -18,3 +18,7 @@ end
 function get_time(model)
     return round(model.current_time, digits=3)
 end
+
+function print_response(model, response)
+    println(get_time(model), " response: $response")
+end

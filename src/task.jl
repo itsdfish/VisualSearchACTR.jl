@@ -20,7 +20,7 @@ function conjunctive_ratio(ex, target_color, target_shape, present)
     push!(visicon, temp...)
     if present == :present
         push!(visicon, VisualObject(features=populate_features((:color,:shape),
-        [target_color,target_shape]), width=get_width(ex)))
+        [target_color,target_shape]), width=get_width(ex), target=true))
     end
     set_locations!(ex, visicon)
     return visicon
@@ -39,6 +39,7 @@ function conjunctive_set(ex, target_color, target_shape, present)
     n == 1 ? (visicon = [rand(visicon)]) : nothing
     if present == :present
         vo = rand(visicon)
+        vo.target = true
         vo.features = populate_features((:color,:shape),
         [target_color,target_shape])
     end
@@ -52,6 +53,7 @@ function feature_set(ex, target_color, target_shape, present)
     visicon = [VisualObject(features=color_fun(), width=get_width(ex)) for _ in 1:ex.set_size]
     if present == :present
         vo = rand(visicon)
+        vo.target = true
         vo.features = populate_features((:color,:shape),
         [target_color,target_shape])
     end

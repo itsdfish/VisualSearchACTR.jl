@@ -19,7 +19,6 @@ end
 function search!(model, ex)
     status = :searching
     while status == :searching
-        # update_finst
         update_decay!(model)
         update_finst!(model)
         update_visibility!(model)
@@ -42,6 +41,7 @@ function _search!(model, ex)
     if status == :error
         cycle_time!(model, ex)
         motor_time!(model, ex)
+        ex.trace ? print_response(model, "absent") : nothing
         add_response!(model, data, :absent)
         return status
     end
@@ -54,6 +54,7 @@ function _search!(model, ex)
     if status == :present
         cycle_time!(model, ex)
         motor_time!(model, ex)
+        ex.trace ? print_response(model, "present") : nothing
         add_response!(model, data, status)
         return status
     end

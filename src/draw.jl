@@ -1,6 +1,7 @@
 function update_window!(model, ex)
     refresh!(ex)
     draw_focus!(model, ex)
+    draw_target!(model, ex)
     bounds = get_min_max(model)
     for vo in model.iconic_memory
         heat = compute_heat(vo, bounds...)
@@ -24,8 +25,13 @@ function draw_object!(ex, vo, heat)
     @guarded draw(c) do widget
         ctx = getgc(c)
         circle(ctx, x, y, w/2)
-        α = get(ColorSchemes.coolwarm, heat)
-        set_source_rgba(ctx, α.r, α.g, α.b , .4)
+        if vo.attended
+            α = get(ColorSchemes.Greys_3, heat)
+            set_source_rgba(ctx, α.r, α.g, α.b , .4)
+        else
+            α = get(ColorSchemes.coolwarm, heat)
+            set_source_rgba(ctx, α.r, α.g, α.b , .4)
+        end
         fill(ctx)
         select_font_face(ctx, "Arial", Cairo.FONT_SLANT_NORMAL,
              Cairo.FONT_WEIGHT_BOLD);
@@ -56,13 +62,30 @@ function draw_focus!(model, ex)
     return nothing
 end
 
+function draw_target!(model, ex)
+    target = filter(x->x.target, model.iconic_memory)
+    isempty(target) ? (return) : nothing
+    c = ex.canvas
+    w = target[1].width
+    x,y = target[1].location
+    @guarded draw(c) do widget
+        ctx = getgc(c)
+        set_line_width(ctx, 4)
+        circle(ctx, x, y, w/2)
+        set_source_rgba(ctx, 255, 255, 179, 1)
+        Cairo.stroke(ctx)
+    end
+    Gtk.showall(c)
+    return nothing
+end
+
 function refresh!(ex)
     c = ex.canvas
     w = ex.array_width
     @guarded draw(c) do widget
         ctx = getgc(c)
         rectangle(ctx, 0, 0, w, w)
-        set_source_rgb(ctx, .65, .65, .65)
+        set_source_rgb(ctx, .8, .8, .8)
         fill(ctx)
     end
     Gtk.showall(c)
