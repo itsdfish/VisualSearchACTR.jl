@@ -30,6 +30,19 @@ function VisualObject(;features, attended=false, visible=false, width=0.0, locat
 		target)
 end
 
+"""
+* `iconic_memory`: a vector of visible objects in iconic memory
+* `target`: attributes of search target
+* `abstract_location`: a buffer that holds a visual object for a "where" request
+* `vision`: a buffer that holds an attended visual object following a "what" request
+* `viewing_distance`: distance between model and screen in inches (30 inches)
+* `current_time`: current model processing time during a trial
+* `focus`: x and y coordinants of the model's current fixation point
+* `top_down_weight`: a weight for the influence of top-down activation (1.1)
+* `bottom_up_weight`: a weight for the influence of bottom-up activation (0.4)
+* `noise`: noise added to visual activation
+
+"""
 mutable struct Model{A,B,T,F}
     iconic_memory::Vector{VisualObject{F}}
 	target::T
@@ -47,16 +60,24 @@ mutable struct Model{A,B,T,F}
 	acuity::A
 	n_finst::Int64
 	finst_span::Float64
+	K_encode::Float64
+	κ_encode::Float64
+	t_prep::Float64
+	init_freq::Float64
+	β₀exe::Float64
+	Δexe::Float64
 end
 
 function Model(;iconic_memory, target, viewing_distance=30.0, current_time=0.0, focus=fill(0.0, 2),
 	topdownweight=.4, bottomup_weight=1.1, noise=.36, threshold=0.0, persistence=4.0, a_color=.104,
-	b_color=.85, a_shape=.142, b_shape=.96, n_finst=4, finst_span=3.0)
+	b_color=.85, a_shape=.142, b_shape=.96, n_finst=4, finst_span=3.0, K_encode=.006, κ_encode=.4,
+	t_prep=.135, init_freq=.01, β₀exe=.02, Δexe=.002)
 	abstract_location = similar(iconic_memory, 0)
 	vision = similar(iconic_memory, 0)
 	acuity = (color = (a=a_color,b=b_color), shape = (a=a_shape,b=b_shape))
-	return Model(iconic_memory, target, abstract_location, vision, viewing_distance, current_time, focus,
-		topdownweight, bottomup_weight, noise, -Inf, Inf, persistence, acuity, n_finst, finst_span)
+	return Model(iconic_memory, target, abstract_location, vision, viewing_distance, current_time,
+	focus,	topdownweight, bottomup_weight, noise, -Inf, Inf, persistence, acuity, n_finst, finst_span,
+		K_encode, κ_encode, t_prep, init_freq, β₀exe, Δexe)
 end
 
 mutable struct Data

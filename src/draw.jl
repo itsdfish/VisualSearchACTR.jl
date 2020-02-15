@@ -1,7 +1,7 @@
 function update_window!(model, ex)
     refresh!(ex)
-    draw_focus!(model, ex)
     draw_target!(model, ex)
+    draw_focus!(model, ex)
     bounds = get_min_max(model)
     for vo in model.iconic_memory
         heat = compute_heat(vo, bounds...)

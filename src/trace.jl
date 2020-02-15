@@ -1,18 +1,19 @@
 function print_trial(ex)
     data = ex.current_trial
-    println("trial info: ")
-    println("   target present: ", data.target_present)
-    println("   stimulus: ", Crayon(foreground=data.target_color), data.target_shape)
+    println("Trial info: ")
+    println("   \ttarget................ ", data.target_present)
+    println("   \tstimulus.............. ", Crayon(foreground=data.target_color), data.target_shape)
     print(Crayon(foreground=:default))
 end
 
 function print_visual_buffer(model)
     object = model.vision[1]
-    println("visual buffer: ")
-    println("   stimulus: ", Crayon(foreground=object.features.color.value),
+    println("Visual Buffer")
+    println("   \tstimulus.............. ", Crayon(foreground=object.features.color.value),
         object.features.shape.value)
     print(Crayon(foreground=:default))
-    println("   location: ", round.(object.location))
+    println("   \tlocation.............. ", round.(object.location))
+    println("   \tactivation............ ", round.(object.activation, digits=2))
 end
 
 function get_time(model)
@@ -20,5 +21,14 @@ function get_time(model)
 end
 
 function print_response(model, response)
-    println(get_time(model), " response: $response")
+    println(get_time(model), " Motor............... respond $response")
+end
+
+function print_abstract_location(model, status)
+    println(get_time(model))
+    println(get_time(model), " Abstract-Location... object $status")
+    status != "found" ? (return) : nothing
+    result = model.abstract_location
+    println("  \tangular size.......... ", round.(compute_angular_distance(model, result[1]),
+        digits=2), "°")
 end

@@ -3,7 +3,7 @@ using Revise, PAAV, Plots, DataFrames, Statistics, StatsPlots
 # add emma
 
 experiment = Experiment(set_size=10,  n_trials=10^4,
-    trace=true, visible=true)
+    trace=true, visible=true, populate_visicon=feature_set)
 run_condition!(experiment)
 df = DataFrame(experiment.data)
 

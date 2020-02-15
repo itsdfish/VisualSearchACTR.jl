@@ -33,7 +33,7 @@ end
 
 function _search!(model, ex)
     # Finding object in abstract-location
-    ex.trace ? println("\n", get_time(model), " start search sequence...") : nothing
+    ex.trace ? println("\n", get_time(model), " start search sequence") : nothing
     ex.trace ? print_trial(ex) : nothing
     data = ex.current_trial
     cycle_time!(model, ex)
@@ -62,24 +62,29 @@ function _search!(model, ex)
 end
 
 function motor_time!(model, ex)
-     tΔ = rand(Gamma(2, .1/2))
-     model.current_time += tΔ
-     ex.visible ? sleep(tΔ/ex.speed) : nothing
-     return nothing
+    θ = gamma_parms(.065)
+    tΔ = rand(Gamma(θ...))
+    model.current_time += tΔ
+    ex.visible ? sleep(tΔ/ex.speed) : nothing
+    return nothing
  end
 
 function cycle_time!(model, ex)
-  tΔ = rand(Gamma(2, .05/2))
-  model.current_time += tΔ
-  ex.visible ? sleep(tΔ/ex.speed) : nothing
-  return nothing
+    θ = gamma_parms(.05)
+    tΔ = rand(Gamma(θ...))
+    model.current_time += tΔ
+    ex.visible ? sleep(tΔ/ex.speed) : nothing
+    return nothing
 end
 
 function attend_time!(model, ex)
-   tΔ = rand(Gamma(2, .085/2))
-   model.current_time += tΔ
-   ex.visible ? sleep(tΔ/ex.speed) : nothing
-   return nothing
+    # θ = gamma_parms(.085)
+    # tΔ = rand(Gamma(θ...))
+    # tΔ = visual_encoding(model)
+    tΔ = saccade_time(model) + visual_encoding(model)
+    model.current_time += tΔ
+    ex.visible ? sleep(tΔ/ex.speed) : nothing
+    return nothing
 end
 
 function add_response!(model, data, status)
@@ -87,6 +92,36 @@ function add_response!(model, data, status)
     data.rt = model.current_time
     return nothing
 end
+
+saccade_time(model) = saccade_time(model, model.abstract_location[1])
+
+function saccade_time(model, vo)
+    distance = compute_angular_distance(model, vo)
+    μ = model.β₀exe + distance*model.Δexe
+    θ = gamma_parms(μ)
+    return rand(Gamma(θ...))
+end
+
+function visual_encoding(model)
+    θ = gamma_parms(.05)
+    return rand(Gamma(θ...))
+end
+
+# visual_encoding(model) = visual_encoding(model, model.abstract_location[1])
+#
+# function visual_encoding(model, vo)
+#     frequency = model.init_freq
+#     distance = compute_angular_distance(model, vo)
+#     μ = model.K_encode*-log(frequency)*exp(distance*model.κ_encode)
+#     θ = gamma_parms(μ)
+#     # vo.encode_start = model.current_time
+#     # vo.encode_time = rand(Gamma(a, b))
+#     return rand(Gamma(θ...))
+# end
+
+gamma_parms(μ, σ) = (μ/σ)^2,σ^2/μ
+
+gamma_parms(μ) = gamma_parms(μ, μ/3)
 
 function add_data(ex)
     push!(ex.data, ex.current_trial)
@@ -102,7 +137,7 @@ function relevant_object(model, vo)
     if distance > model.distance_threshold
         return false
     end
-    if vo.activation < model.activation_threshold
+    if vo.topdown_activation <= model.activation_threshold
         return false
     end
     return true
@@ -111,19 +146,18 @@ end
 function find_object!(model, ex)
     visible_objects = filter(x->relevant_object(model, x), model.iconic_memory)
     if isempty(visible_objects)
-        ex.trace ? println(get_time(model), " finding object. status: error") : nothing
+        ex.trace ? print_abstract_location(model, "error locating object") : nothing
         return :error
     end
     model.abstract_location = max_activation(visible_objects)
-    ex.trace ? println(get_time(model), " finding object. status: searching") : nothing
-    mn,mx = get_min_max(visible_objects)
+    ex.trace ? print_abstract_location(model, "found") : nothing
     return :searching
 end
 
 attend_object!(model, ex) = attend_object!(model, ex, model.abstract_location[1])
 
 function attend_object!(model, ex, vo)
-    ex.trace ? println(get_time(model), " attending object.") : nothing
+    ex.trace ? println(get_time(model), " Vision","."^14, " object attended.") : nothing
     distance = compute_distance(model, vo)
     model.vision = [vo]
     vo.attended = true
@@ -140,7 +174,7 @@ end
 target_found(model, ex) = target_found(model, model.vision[1], ex, model.target)
 
 function target_found(model, vo, ex, target)
-    print_trace(v) = ex.trace ? println(get_time(model), " target $v") : nothing
+    print_trace(v) = ex.trace ? println(get_time(model), " Procedural","."^10, " target $v") : nothing
     for (f,v) in pairs(target)
         vo.features[f].value != v ? (print_trace("not found");return :searching) : nothing
     end
