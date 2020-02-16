@@ -38,3 +38,24 @@ end
     @test β0 ≈ 0.43 rtol = .05
     @test β1 ≈ 0.0 atol = .01
 end
+
+@safetestset "Gamma Parms" begin
+    using PAAV, Test, Distributions
+    import PAAV: gamma_parms
+
+    θ = gamma_parms(3, 2)
+    @test mean(Gamma(θ...)) ≈ 3 rtol = .0005
+    @test std(Gamma(θ...)) ≈ 2 rtol = .0005
+
+    θ = gamma_parms(.2, 1)
+    @test mean(Gamma(θ...)) ≈ .2 rtol = .0005
+    @test std(Gamma(θ...)) ≈ 1 rtol = .0005
+end
+
+@safetestset "Run model" begin
+    using PAAV, Test
+    experiment = Experiment(set_size=10,  n_trials=2,
+    trace=true, speed =.5)
+    run_condition!(experiment)
+    @test true
+end

@@ -11,6 +11,7 @@ function run_trial!(ex; parms...)
     model = Model(;target=target, iconic_memory=visicon, parms...)
     orient!(model, ex)
     ex.visible ? draw_cross!(model, ex) : nothing
+    ex.trace ? println("\n", get_time(model), " start search sequence") : nothing
     search!(model, ex)
     #return nothing
     return model
@@ -33,7 +34,6 @@ end
 
 function _search!(model, ex)
     # Finding object in abstract-location
-    ex.trace ? println("\n", get_time(model), " start search sequence") : nothing
     ex.trace ? print_trial(ex) : nothing
     data = ex.current_trial
     cycle_time!(model, ex)
@@ -50,7 +50,7 @@ function _search!(model, ex)
     attend_time!(model, ex)
     attend_object!(model, ex)
     cycle_time!(model, ex)
-    status = target_found(model, ex)
+    status = check_object(model, ex)
     if status == :present
         cycle_time!(model, ex)
         motor_time!(model, ex)
@@ -78,9 +78,6 @@ function cycle_time!(model, ex)
 end
 
 function attend_time!(model, ex)
-    # θ = gamma_parms(.085)
-    # tΔ = rand(Gamma(θ...))
-    # tΔ = visual_encoding(model)
     tΔ = saccade_time(model) + visual_encoding(model)
     model.current_time += tΔ
     ex.visible ? sleep(tΔ/ex.speed) : nothing
@@ -133,7 +130,6 @@ function relevant_object(model, vo)
         return false
     end
     distance = compute_distance(model, vo)
-    # println("distance: ", distance, " threshold: ", model.distance_threshold)
     if distance > model.distance_threshold
         return false
     end
@@ -150,31 +146,35 @@ function find_object!(model, ex)
         return :error
     end
     model.abstract_location = max_activation(visible_objects)
-    ex.trace ? print_abstract_location(model, "found") : nothing
+    ex.trace ? print_abstract_location(model, "object found") : nothing
     return :searching
 end
 
 attend_object!(model, ex) = attend_object!(model, ex, model.abstract_location[1])
 
 function attend_object!(model, ex, vo)
-    ex.trace ? println(get_time(model), " Vision","."^14, " object attended.") : nothing
-    distance = compute_distance(model, vo)
+    ex.trace ? println(get_time(model), " Vision","."^16, " object attended.") : nothing
+    # println(model.distance_threshold)
+    if model.distance_threshold == Inf
+        distance = compute_distance(model, vo)
+        model.distance_threshold = distance
+    else
+        model.distance_threshold = Inf
+    end
+    # println(model.distance_threshold)
     model.vision = [vo]
     vo.attended = true
     vo.attend_time = model.current_time
     model.focus = vo.location
     model.activation_threshold = vo.topdown_activation
-    #if model.distance_threshold == Inf
-    model.distance_threshold = distance
-    #end
     ex.trace ? print_visual_buffer(model) : nothing
     return nothing
 end
 
-target_found(model, ex) = target_found(model, model.vision[1], ex, model.target)
+check_object(model, ex) = check_object(model, model.vision[1], ex, model.target)
 
-function target_found(model, vo, ex, target)
-    print_trace(v) = ex.trace ? println(get_time(model), " Procedural","."^10, " target $v") : nothing
+function check_object(model, vo, ex, target)
+    print_trace(v) = ex.trace ? println(get_time(model), " Procedural","."^12, " target $v") : nothing
     for (f,v) in pairs(target)
         vo.features[f].value != v ? (print_trace("not found");return :searching) : nothing
     end

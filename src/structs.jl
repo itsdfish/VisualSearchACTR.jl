@@ -123,7 +123,7 @@ function Experiment(;array_width=430.0, object_width=32.0, n_cells=8, n_trials=2
     visible ? Gtk.showall(window) : nothing
 	return Experiment(array_width, n_cells, n_trials, cell_width, object_width,
 		n_color_distractors, n_shape_distractors, set_size, colors, shapes, base_rate,
-		data, current_trial, trace, window, canvas, visible, 1/speed, populate_visicon)
+		data, current_trial, trace, window, canvas, visible, speed, populate_visicon)
 end
 
 function setup_window(array_width)

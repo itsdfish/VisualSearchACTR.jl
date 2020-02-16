@@ -17,6 +17,7 @@ function draw_cross!(model, ex)
 end
 
 function draw_object!(ex, vo, heat)
+    !vo.visible ? (return) : nothing
     c = ex.canvas
     w = vo.width
     x,y = vo.location
