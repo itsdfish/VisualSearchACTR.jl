@@ -9,6 +9,7 @@ function run_trial!(ex; parms...)
     target,present = initialize_trial!(ex)
     visicon = ex.populate_visicon(ex, target..., present)
     model = Model(;target=target, iconic_memory=visicon, parms...)
+    compute_angular_size!(model)
     orient!(model, ex)
     ex.visible ? draw_cross!(model, ex) : nothing
     ex.trace ? println("\n", get_time(model), " start search sequence") : nothing
@@ -133,7 +134,7 @@ function relevant_object(model, vo)
     if distance > model.distance_threshold
         return false
     end
-    if vo.topdown_activation <= model.activation_threshold
+    if vo.topdown_activation ≤ model.activation_threshold
         return false
     end
     return true
@@ -176,7 +177,7 @@ check_object(model, ex) = check_object(model, model.vision[1], ex, model.target)
 function check_object(model, vo, ex, target)
     print_trace(v) = ex.trace ? println(get_time(model), " Procedural","."^12, " target $v") : nothing
     for (f,v) in pairs(target)
-        vo.features[f].value != v ? (print_trace("not found");return :searching) : nothing
+        vo.features[f].value ≠ v ? (print_trace("not found");return :searching) : nothing
     end
     print_trace("found")
     return :present
@@ -200,7 +201,7 @@ end
 
 function update_decay!(model, object)
     for f in object.features
-        if f.fixation_time < (model.current_time - model.persistance)
+        if model.persistance < (model.current_time - f.fixation_time)
             f.visible = false
             f.fixation_time = 0.0
         end
@@ -274,10 +275,10 @@ function bottomup_activation!(vo1, vo2)
     return bottomup_activation!(vo1.features, vo2.features, distance)
 end
 
-function bottomup_activation!(features1, features2, distance)
+function bottomup_activation!(f1, f2, distance)
     activation = 0.0
-    for (f,v) in pairs(features1)
-        if features2[f].value != v.value
+    for (f,v) in pairs(f1)
+        if (f2[f].value ≠ v.value) || !v.visible || !f2[f].visible
             activation += 1.0/sqrt(distance)
         end
     end
@@ -299,6 +300,7 @@ function topdown_activation!(object, target)
                 activation += 1.0
             end
         else
+            println("feature not visible")
             activation += .5
         end
     end
@@ -311,18 +313,21 @@ function update_visibility!(model)
     map(x->object_visibility!(x), model.iconic_memory)
 end
 
-function feature_visibility!(model, object)
-    angular_distance = compute_angular_distance(model, object)
-    angular_size = compute_angular_size(model, object)
-    for (f,v) in pairs(object.features)
+function feature_visibility!(model, vo)
+    angular_distance = compute_angular_distance(model, vo)
+    for (f,v) in pairs(vo.features)
         parms = model.acuity[f]
         threshold = compute_acuity_threshold(parms, angular_distance)
-        if feature_is_visible(angular_size, threshold)
+        #println("feature: ", f, " threshold: ", threshold, " angular distance: ", angular_distance)
+        if feature_is_visible(vo, threshold)
             v.visible = true
         end
     end
+    #println("")
     return nothing
 end
+
+feature_is_visible(vo::VisualObject, threshold) = feature_is_visible(vo.angular_size, threshold)
 
 function feature_is_visible(angular_size, threshold)
     return angular_size > threshold
@@ -336,16 +341,23 @@ function compute_distance(vo1, vo2)
     sqrt(sum((vo1.location .- vo2.location).^2))
 end
 
-function compute_angular_distance(model, object)
-    distance = compute_distance(model, object)
+function compute_angular_distance(model, vo)
+    distance = compute_distance(model, vo)
     return pixels_to_degrees(model, distance)
 end
 
-compute_angular_size(model, object::VisualObject) = compute_angular_size(model, object.width)
+function compute_angular_size!(model)
+    map(x->compute_angular_size!(model, x), model.iconic_memory)
+    return nothing
+end
 
-function compute_angular_size(model, width)
+function compute_angular_size!(model, vo)
     ppi = 72 # pixels per inch
     distance = model.viewing_distance*ppi
+    vo.angular_size = compute_angular_size(distance, vo.width)
+end
+
+function compute_angular_size(distance, width)
     radians = 2*atan(width/(2*distance))
     return rad2deg(radians)
 end

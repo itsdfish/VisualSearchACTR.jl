@@ -16,6 +16,7 @@ mutable struct VisualObject{F}
     attended::Bool
     visible::Bool
 	width::Float64
+	angular_size::Float64
 	activation::Float64
 	bottomup_activation::Float64
 	topdown_activation::Float64
@@ -24,9 +25,9 @@ mutable struct VisualObject{F}
 	target::Bool
 end
 
-function VisualObject(;features, attended=false, visible=false, width=0.0, location=[0.0,0.0],
+function VisualObject(;features, attended=false, visible=false, width=0.0, angular_size=0.0, location=[0.0,0.0],
 		attend_time=0.0, target=false)
-	return VisualObject(features, attended, visible, width, 0.0, 0.0, 0.0, location, attend_time,
+	return VisualObject(features, attended, visible, width, 0.0, 0.0, 0.0, 0.0, location, attend_time,
 		target)
 end
 
@@ -112,7 +113,7 @@ mutable struct Experiment{T1,T2,F}
 	populate_visicon::F
 end
 
-function Experiment(;array_width=430.0, object_width=32.0, n_cells=8, n_trials=20,
+function Experiment(;array_width=428., object_width=32.0, n_cells=8, n_trials=20,
 	n_color_distractors=20, set_size=40, n_shape_distractors=20, shapes=[:p,:q], colors=[:red,:blue],
 	base_rate=.50, data=Data[], current_trial=Data(), trace=false, window=nothing, canvas=nothing,
 	visible=false, speed=1.0, populate_visicon=conjunctive_ratio)

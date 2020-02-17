@@ -1,6 +1,6 @@
 using Revise, PAAV, Plots, DataFrames, Statistics, StatsPlots
 
-experiment = Experiment(set_size=10,  n_trials=10^1,
+experiment = Experiment(n_trials=10^1,
     trace=true, visible=true, speed =.3)
 run_condition!(experiment)
 df = DataFrame(experiment.data)

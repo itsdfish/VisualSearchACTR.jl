@@ -26,23 +26,23 @@ function print_response(model, response)
 end
 
 function print_abstract_location(model, status)
-    println(get_time(model))
     println(get_time(model), " Abstract-Location..... $status")
+    println("\t  iconic memory size.... ", iconic_memory_size(model), " out of ", visicon_size(model))
     status != "object found" ? (return) : nothing
     result = model.abstract_location[1]
     angular_distance = compute_angular_distance(model, result)
-    angular_size = compute_angular_size(model, result)
+    angular_size = result.angular_size
     parms = model.acuity[:color]
     color_threshold = compute_acuity_threshold(parms, angular_distance)
     parms = model.acuity[:shape]
     shape_threshold = compute_acuity_threshold(parms, angular_distance)
     println("\t  model focus........... ", "x: ", round(Int, model.focus[1]),
         " y: ", round(Int, model.focus[2]))
-    println("\t  iconic memory size.... ", iconic_memory_size(model), " out of ", visicon_size(model))
     println("\t  color threshold....... ", round.(color_threshold, digits=2), "°")
     println("\t  shape threshold....... ", round.(shape_threshold, digits=2), "°")
     println("\t  angular size.......... ", round.(angular_size, digits=2), "°")
     println("\t  angular distance...... ", round.(angular_distance, digits=2), "°")
+
 end
 
 iconic_memory_size(model) = sum(x->x.visible, model.iconic_memory)
