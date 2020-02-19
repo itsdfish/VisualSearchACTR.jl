@@ -10,7 +10,7 @@ Random.seed!(52484)
 #                               Conjunctive Search
 #################################################################################################
 set_sizes = [1:5...,7,10,15,20,25,30]
-conj_results = run_simulation(set_sizes, fun=conjunctive_set)
+conj_results = run_simulation(set_sizes; fun=conjunctive_set, viewing_distance=10.0)
 
 pyplot()
 @df conj_results plot(:distractors, :hit_rate, grid=false,
@@ -32,7 +32,7 @@ conj_ols_absent = lm(@formula(rt_mean ~ distractors), df_absent)
 #                               Feature Search
 #################################################################################################
 set_sizes = [1:5...,7,10,15,20,25,30]
-feature_results = run_simulation(set_sizes, fun=feature_set)
+feature_results = run_simulation(set_sizes; fun=feature_set, viewing_distance=10.0)
 
 pyplot()
 hit = @df feature_results plot(:distractors, :hit_rate, grid=false,

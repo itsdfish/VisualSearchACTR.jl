@@ -2,8 +2,7 @@ using Revise, PAAV, Plots, DataFrames, Statistics, StatsPlots
 
 experiment = Experiment(n_trials=10^1,
     trace=true, visible=true, speed =.3)
-run_condition!(experiment)
-df = DataFrame(experiment.data)
+run_trial!(experiment)
 
 
 

@@ -300,7 +300,6 @@ function topdown_activation!(object, target)
                 activation += 1.0
             end
         else
-            println("feature not visible")
             activation += .5
         end
     end
@@ -318,7 +317,8 @@ function feature_visibility!(model, vo)
     for (f,v) in pairs(vo.features)
         parms = model.acuity[f]
         threshold = compute_acuity_threshold(parms, angular_distance)
-        #println("feature: ", f, " threshold: ", threshold, " angular distance: ", angular_distance)
+        # println("feature: ", f, " threshold: ", threshold, " angular distance: ", angular_distance, " model location: ",
+        #     model.focus, " object location: ", vo.location)
         if feature_is_visible(vo, threshold)
             v.visible = true
         end

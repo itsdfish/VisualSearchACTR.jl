@@ -38,6 +38,7 @@ function print_abstract_location(model, status)
     shape_threshold = compute_acuity_threshold(parms, angular_distance)
     println("\t  model focus........... ", "x: ", round(Int, model.focus[1]),
         " y: ", round(Int, model.focus[2]))
+    println("\t  attend time .......... ", round.(result.attend_time, digits=2))
     println("\t  color threshold....... ", round.(color_threshold, digits=2), "°")
     println("\t  shape threshold....... ", round.(shape_threshold, digits=2), "°")
     println("\t  angular size.......... ", round.(angular_size, digits=2), "°")
