@@ -105,18 +105,6 @@ function visual_encoding(model)
     return rand(Gamma(θ...))
 end
 
-# visual_encoding(model) = visual_encoding(model, model.abstract_location[1])
-#
-# function visual_encoding(model, vo)
-#     frequency = model.init_freq
-#     distance = compute_angular_distance(model, vo)
-#     μ = model.K_encode*-log(frequency)*exp(distance*model.κ_encode)
-#     θ = gamma_parms(μ)
-#     # vo.encode_start = model.current_time
-#     # vo.encode_time = rand(Gamma(a, b))
-#     return rand(Gamma(θ...))
-# end
-
 gamma_parms(μ, σ) = (μ/σ)^2,σ^2/μ
 
 gamma_parms(μ) = gamma_parms(μ, μ/3)
@@ -127,17 +115,7 @@ function add_data(ex)
 end
 
 function relevant_object(model, vo)
-    if !vo.visible || vo.attended
-        return false
-    end
-    distance = compute_distance(model, vo)
-    if distance > model.distance_threshold
-        return false
-    end
-    if vo.topdown_activation ≤ model.activation_threshold
-        return false
-    end
-    return true
+    !vo.visible || vo.attended ? (return false) : (return true)
 end
 
 function find_object!(model, ex)
@@ -146,7 +124,12 @@ function find_object!(model, ex)
         ex.trace ? print_abstract_location(model, "error locating object") : nothing
         return :error
     end
-    model.abstract_location = max_activation(visible_objects)
+    max_vo = max_activation(visible_objects)
+    if terminate(model, max_vo)
+        ex.trace ? print_abstract_location(model, "termination threshold exceeded") : nothing
+        return :error
+    end
+    model.abstract_location = max_vo
     ex.trace ? print_abstract_location(model, "object found") : nothing
     return :searching
 end
@@ -155,19 +138,10 @@ attend_object!(model, ex) = attend_object!(model, ex, model.abstract_location[1]
 
 function attend_object!(model, ex, vo)
     ex.trace ? println(get_time(model), " Vision","."^16, " object attended.") : nothing
-    # println(model.distance_threshold)
-    # if model.distance_threshold == Inf
-    #     distance = compute_distance(model, vo)
-    #     model.distance_threshold = distance
-    # else
-    #     model.distance_threshold = Inf
-    # end
-    # println(model.distance_threshold)
     model.vision = [vo]
     vo.attended = true
     vo.attend_time = model.current_time
     model.focus = vo.location
-    model.activation_threshold = vo.topdown_activation
     ex.trace ? print_visual_buffer(model) : nothing
     return nothing
 end
@@ -177,7 +151,11 @@ check_object(model, ex) = check_object(model, model.vision[1], ex, model.target)
 function check_object(model, vo, ex, target)
     print_trace(v) = ex.trace ? println(get_time(model), " Procedural","."^12, " target $v") : nothing
     for (f,v) in pairs(target)
-        vo.features[f].value ≠ v ? (print_trace("not found");return :searching) : nothing
+        if vo.features[f].value ≠ v
+            print_trace("not found")
+            update_threshold!(model)
+            return :searching
+        end
     end
     print_trace("found")
     return :present
@@ -193,6 +171,17 @@ function max_activation(vos)
         end
     end
     return max_vo
+end
+
+function update_threshold!(model)
+    model.τₐ += model.Δτ
+end
+
+terminate(model, max_vo) = terminate(model, max_vo[1])
+
+function terminate(model, max_vo::VisualObject)
+    τ = model.τₐ + add_noise(model)
+    τ > max_vo.activation ? (return true) : (return false)
 end
 
 function update_decay!(model)
@@ -252,7 +241,7 @@ end
 
 function weighted_activation!(model, object)
     object.activation = model.bottomup_weight * object.bottomup_activation +
-    model.topdown_weight * object.topdown_activation + rand(Normal(0, model.noise))
+    model.topdown_weight * object.topdown_activation + add_noise(model)
     return nothing
 end
 
@@ -306,6 +295,8 @@ function topdown_activation!(object, target)
     object.topdown_activation = activation
     return nothing
 end
+
+add_noise(model) = rand(Normal(0, model.noise))
 
 function update_visibility!(model)
     map(x->feature_visibility!(model, x), model.iconic_memory)
@@ -389,3 +380,15 @@ function orient!(model, ex)
     w = ex.array_width/2
     model.focus = fill(w, 2)
 end
+
+# visual_encoding(model) = visual_encoding(model, model.abstract_location[1])
+#
+# function visual_encoding(model, vo)
+#     frequency = model.init_freq
+#     distance = compute_angular_distance(model, vo)
+#     μ = model.K_encode*-log(frequency)*exp(distance*model.κ_encode)
+#     θ = gamma_parms(μ)
+#     # vo.encode_start = model.current_time
+#     # vo.encode_time = rand(Gamma(a, b))
+#     return rand(Gamma(θ...))
+# end

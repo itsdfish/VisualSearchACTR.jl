@@ -42,7 +42,8 @@ end
 * `top_down_weight`: a weight for the influence of top-down activation (1.1)
 * `bottom_up_weight`: a weight for the influence of bottom-up activation (0.4)
 * `noise`: noise added to visual activation
-
+* `τₐ`: activation threshold for terminating search
+*  `Δτ`: activation threshold increment following a fixation to a distractor
 """
 mutable struct Model{A,B,T,F}
     iconic_memory::Vector{VisualObject{F}}
@@ -55,30 +56,25 @@ mutable struct Model{A,B,T,F}
 	topdown_weight::Float64
 	bottomup_weight::Float64
 	noise::Float64
-	activation_threshold::Float64
-	distance_threshold::Float64
 	persistance::Float64
 	acuity::A
 	n_finst::Int64
 	finst_span::Float64
-	K_encode::Float64
-	κ_encode::Float64
-	t_prep::Float64
-	init_freq::Float64
 	β₀exe::Float64
 	Δexe::Float64
+	τₐ::Float64
+	Δτ::Float64
 end
 
 function Model(;iconic_memory, target, viewing_distance=30.0, current_time=0.0, focus=fill(0.0, 2),
-	topdownweight=.4, bottomup_weight=1.1, noise=.36, threshold=0.0, persistence=4.0, a_color=.104,
-	b_color=.85, a_shape=.142, b_shape=.96, n_finst=4, finst_span=3.0, K_encode=.006, κ_encode=.4,
-	t_prep=.135, init_freq=.01, β₀exe=.02, Δexe=.002)
+	topdownweight=.4, bottomup_weight=1.1, noise=.36, persistence=4.0, a_color=.104,b_color=.85,
+	a_shape=.142, b_shape=.96, n_finst=4, finst_span=3.0, β₀exe=.02, Δexe=.002, τₐ=0.0, Δτ=0.5)
 	abstract_location = similar(iconic_memory, 0)
 	vision = similar(iconic_memory, 0)
 	acuity = (color = (a=a_color,b=b_color), shape = (a=a_shape,b=b_shape))
 	return Model(iconic_memory, target, abstract_location, vision, viewing_distance, current_time,
-	focus,	topdownweight, bottomup_weight, noise, -Inf, Inf, persistence, acuity, n_finst, finst_span,
-		K_encode, κ_encode, t_prep, init_freq, β₀exe, Δexe)
+		focus,topdownweight, bottomup_weight, noise, persistence, acuity, n_finst, finst_span, β₀exe,
+		Δexe, τₐ, Δτ)
 end
 
 mutable struct Data
