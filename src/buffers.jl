@@ -156,12 +156,12 @@ attend_object!(model, ex) = attend_object!(model, ex, model.abstract_location[1]
 function attend_object!(model, ex, vo)
     ex.trace ? println(get_time(model), " Vision","."^16, " object attended.") : nothing
     # println(model.distance_threshold)
-    if model.distance_threshold == Inf
-        distance = compute_distance(model, vo)
-        model.distance_threshold = distance
-    else
-        model.distance_threshold = Inf
-    end
+    # if model.distance_threshold == Inf
+    #     distance = compute_distance(model, vo)
+    #     model.distance_threshold = distance
+    # else
+    #     model.distance_threshold = Inf
+    # end
     # println(model.distance_threshold)
     model.vision = [vo]
     vo.attended = true
