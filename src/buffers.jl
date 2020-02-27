@@ -137,7 +137,7 @@ end
 attend_object!(model, ex) = attend_object!(model, ex, model.abstract_location[1])
 
 function attend_object!(model, ex, vo)
-    ex.trace ? println(get_time(model), " Vision","."^16, " object attended.") : nothing
+    ex.trace ? print_vision(model) : nothing
     model.vision = [vo]
     vo.attended = true
     vo.attend_time = model.current_time
@@ -149,15 +149,14 @@ end
 check_object(model, ex) = check_object(model, model.vision[1], ex, model.target)
 
 function check_object(model, vo, ex, target)
-    print_trace(v) = ex.trace ? println(get_time(model), " Procedural","."^12, " target $v") : nothing
     for (f,v) in pairs(target)
         if vo.features[f].value ≠ v
-            print_trace("not found")
+            ex.trace ? print_check(model, "not found") : nothing
             update_threshold!(model)
             return :searching
         end
     end
-    print_trace("found")
+    ex.trace ? print_check(model, "found") : nothing
     return :present
 end
 
@@ -229,6 +228,7 @@ function compute_activations!(model)
     topdown_activations!(iconic_memory, model.target)
     bottomup_activations!(iconic_memory)
     weighted_activations!(model, iconic_memory)
+    add_noise!(model, iconic_memory)
     return nothing
 end
 
@@ -239,10 +239,14 @@ function weighted_activations!(model, iconic_memory)
     return nothing
 end
 
-function weighted_activation!(model, object)
-    object.activation = model.bottomup_weight * object.bottomup_activation +
-    model.topdown_weight * object.topdown_activation + add_noise(model)
+function weighted_activation!(model, vo)
+    vo.activation = weighted_activation(model, vo)
     return nothing
+end
+
+function weighted_activation(model, vo)
+    return model.bottomup_weight * vo.bottomup_activation +
+    model.topdown_weight * vo.topdown_activation
 end
 
 bottomup_activations!(model::Model) = bottomup_activations!(model.iconic_memory)
@@ -297,6 +301,10 @@ function topdown_activation!(object, target)
 end
 
 add_noise(model) = rand(Normal(0, model.noise))
+
+add_noise!(model, vo::VisualObject) = vo.activation += add_noise(model)
+
+add_noise!(model, iconic_memory) = map(x->add_noise!(model, x), iconic_memory)
 
 function update_visibility!(model)
     map(x->feature_visibility!(model, x), model.iconic_memory)

@@ -1,20 +1,20 @@
 function print_trial(ex)
     data = ex.current_trial
     println("Trial info: ")
-    println("\t  target................ ", data.target_present)
-    println("\t  stimulus.............. ", Crayon(foreground=data.target_color), data.target_shape)
+    println("\t  target.................... ", data.target_present)
+    println("\t  stimulus.................. ", Crayon(foreground=data.target_color), data.target_shape)
     print(Crayon(foreground=:default))
 end
 
 function print_visual_buffer(model)
     object = model.vision[1]
     println("Visual Buffer")
-    println("\t  stimulus.............. ", Crayon(foreground=object.features.color.value),
+    println("\t  stimulus.................. ", Crayon(foreground=object.features.color.value),
         object.features.shape.value)
     print(Crayon(foreground=:default))
-    println("\t  location.............. ", "x: ", round(Int, object.location[1]),
+    println("\t  location.................. ", "x: ", round(Int, object.location[1]),
         " y: ", round(Int, object.location[2]))
-    println("\t  activation............ ", round(object.activation, digits=2))
+    println("\t  activation................ ", round(object.activation, digits=2))
 end
 
 function get_time(model)
@@ -22,12 +22,13 @@ function get_time(model)
 end
 
 function print_response(model, response)
-    println(get_time(model), " Motor................. respond $response")
+    println(get_time(model), " Motor....................... respond $response")
 end
 
 function print_abstract_location(model, status)
-    println(get_time(model), " Abstract-Location..... $status")
-    println("\t  iconic memory size.... ", iconic_memory_size(model), " out of ", visicon_size(model))
+    println(get_time(model), " Abstract-Location......... $status")
+    println("\t  iconic memory size........ ", iconic_memory_size(model), " out of ", visicon_size(model))
+    println("\t  termination probability... ", "≈ ", round(termination_prob(model), digits=2))
     status != "object found" ? (return) : nothing
     result = model.abstract_location[1]
     angular_distance = compute_angular_distance(model, result)
@@ -36,15 +37,29 @@ function print_abstract_location(model, status)
     color_threshold = compute_acuity_threshold(parms, angular_distance)
     parms = model.acuity[:shape]
     shape_threshold = compute_acuity_threshold(parms, angular_distance)
-    println("\t  model focus........... ", "x: ", round(Int, model.focus[1]),
+    println("\t  model focus............... ", "x: ", round(Int, model.focus[1]),
         " y: ", round(Int, model.focus[2]))
-    println("\t  attend time .......... ", round.(result.attend_time, digits=2))
-    println("\t  color threshold....... ", round.(color_threshold, digits=2), "°")
-    println("\t  shape threshold....... ", round.(shape_threshold, digits=2), "°")
-    println("\t  angular size.......... ", round.(angular_size, digits=2), "°")
-    println("\t  angular distance...... ", round.(angular_distance, digits=2), "°")
-
+    println("\t  attend time .............. ", round.(result.attend_time, digits=2))
+    println("\t  color threshold........... ", round.(color_threshold, digits=2), "°")
+    println("\t  shape threshold........... ", round.(shape_threshold, digits=2), "°")
+    println("\t  angular size.............. ", round.(angular_size, digits=2), "°")
+    println("\t  angular distance.......... ", round.(angular_distance, digits=2), "°")
 end
 
+function print_vision(model)
+    println(get_time(model), " Vision","."^20, " object attended.")
+end
+
+print_check(model, v) = println(get_time(model), " Procedural","."^16, " target $v")
+
 iconic_memory_size(model) = sum(x->x.visible, model.iconic_memory)
+
 visicon_size(model) = length(model.iconic_memory)
+
+function termination_prob(model)
+    σ = model.noise
+    τ = model.τₐ
+    α = map(x->weighted_activation(model, x), model.iconic_memory)
+    push!(α, τ)
+    return exp(τ/σ)/sum(exp.(α/σ))
+end
