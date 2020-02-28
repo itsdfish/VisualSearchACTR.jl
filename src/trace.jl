@@ -22,7 +22,7 @@ function get_time(model)
 end
 
 function print_response(model, response)
-    println(get_time(model), " Motor....................... respond $response")
+    println(get_time(model), " Motor..................... respond $response")
 end
 
 function print_abstract_location(model, status)
@@ -59,7 +59,8 @@ visicon_size(model) = length(model.iconic_memory)
 function termination_prob(model)
     σ = model.noise
     τ = model.τₐ
-    α = map(x->weighted_activation(model, x), model.iconic_memory)
+    vos = filter(x->relevant_object(model, x), model.iconic_memory)
+    α = map(x->weighted_activation(model, x), vos)
     push!(α, τ)
     return exp(τ/σ)/sum(exp.(α/σ))
 end

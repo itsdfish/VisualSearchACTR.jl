@@ -14,7 +14,6 @@ function run_trial!(ex; parms...)
     ex.visible ? draw_cross!(model, ex) : nothing
     ex.trace ? println("\n", get_time(model), " start search sequence") : nothing
     search!(model, ex)
-    #return nothing
     return model
 end
 
@@ -29,7 +28,7 @@ function search!(model, ex)
         status = _search!(model, ex)
         ex.visible ? update_window!(model, ex) : nothing
     end
-    add_data(ex)
+    add_data!(ex)
     return nothing
 end
 
@@ -85,12 +84,6 @@ function attend_time!(model, ex)
     return nothing
 end
 
-function add_response!(model, data, status)
-    data.response = status
-    data.rt = model.current_time
-    return nothing
-end
-
 saccade_time(model) = saccade_time(model, model.abstract_location[1])
 
 function saccade_time(model, vo)
@@ -109,8 +102,14 @@ gamma_parms(μ, σ) = (μ/σ)^2,σ^2/μ
 
 gamma_parms(μ) = gamma_parms(μ, μ/3)
 
-function add_data(ex)
+function add_data!(ex)
     push!(ex.data, ex.current_trial)
+    return nothing
+end
+
+function add_response!(model, data, status)
+    data.response = status
+    data.rt = model.current_time
     return nothing
 end
 
@@ -316,13 +315,10 @@ function feature_visibility!(model, vo)
     for (f,v) in pairs(vo.features)
         parms = model.acuity[f]
         threshold = compute_acuity_threshold(parms, angular_distance)
-        # println("feature: ", f, " threshold: ", threshold, " angular distance: ", angular_distance, " model location: ",
-        #     model.focus, " object location: ", vo.location)
         if feature_is_visible(vo, threshold)
             v.visible = true
         end
     end
-    #println("")
     return nothing
 end
 
