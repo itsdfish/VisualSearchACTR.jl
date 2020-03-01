@@ -48,7 +48,7 @@ end
     include("simulation.jl")
     Random.seed!(95025181)
     set_sizes = [1,2,5,10,20,30]
-    results = run_simulation(set_sizes, fun=feature_set, Δτ=.8, topdownweight=.60)
+    results = run_simulation(set_sizes, fun=feature_set, Δτ=.8, topdown_weight=.60)
 
     df_present = filter(x->x[:target_present] ==:present && x[:response] ==:present, results)
     ols_present = lm(@eval(@formula(rt_mean ~ distractors)), df_present)
@@ -67,7 +67,7 @@ end
     include("simulation.jl")
     Random.seed!(52484)
     set_sizes = [1,2,5,10,20,30]
-    results = run_simulation(set_sizes, fun=conjunctive_set, Δτ=.4, topdownweight=.60)
+    results = run_simulation(set_sizes, fun=conjunctive_set, Δτ=.4, topdown_weight=.60)
 
     df_present = filter(x->x[:target_present] ==:present && x[:response] ==:present, results)
     ols_present = lm(@eval(@formula(rt_mean ~ distractors)), df_present)

@@ -5,7 +5,7 @@ using Revise, PAAV, Plots, DataFrames, Statistics, StatsPlots
 using GLM, Random
 cd(@__DIR__)
 include("simulation.jl")
-Random.seed!(52484)
+Random.seed!(524184)
 #################################################################################################
 #                               Conjunctive Search
 #################################################################################################

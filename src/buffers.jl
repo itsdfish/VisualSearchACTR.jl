@@ -328,6 +328,17 @@ function feature_is_visible(angular_size, threshold)
     return angular_size > threshold
 end
 
+function object_visibility!(object)
+    for f in object.features
+        if f.visible
+            object.visible = true
+            return nothing
+        end
+    end
+    object.visible = false
+    return nothing
+end
+
 function compute_distance(model::Model, object)
     sqrt(sum((model.focus .- object.location).^2))
 end
@@ -367,17 +378,6 @@ function pixels_to_degrees(model, pixels)
     ppi = 72 # pixels per inch
     radians = atan(pixels/ppi, model.viewing_distance)
     return rad2deg(radians)
-end
-
-function object_visibility!(object)
-    for f in object.features
-        if f.visible
-            object.visible = true
-            return nothing
-        end
-    end
-    object.visible = false
-    return nothing
 end
 
 function orient!(model, ex)
