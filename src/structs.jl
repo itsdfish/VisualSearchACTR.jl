@@ -39,8 +39,8 @@ end
 * `viewing_distance`: distance between model and screen in inches (30 inches)
 * `current_time`: current model processing time during a trial
 * `focus`: x and y coordinants of the model's current fixation point
-* `top_down_weight`: a weight for the influence of top-down activation (1.1)
-* `bottom_up_weight`: a weight for the influence of bottom-up activation (0.4)
+* `topdown_weight`: a weight for the influence of top-down activation (1.1)
+* `bottomup_weight`: a weight for the influence of bottom-up activation (0.4)
 * `noise`: noise added to visual activation
 * `τₐ`: activation threshold for terminating search
 *  `Δτ`: activation threshold increment following a fixation to a distractor

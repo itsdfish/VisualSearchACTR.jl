@@ -347,6 +347,9 @@ function compute_distance(vo1, vo2)
     sqrt(sum((vo1.location .- vo2.location).^2))
 end
 
+"""
+Angular distance in degress. Also known as eccentricity 
+"""
 function compute_angular_distance(model, vo)
     distance = compute_distance(model, vo)
     return pixels_to_degrees(model, distance)
