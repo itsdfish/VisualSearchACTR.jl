@@ -73,7 +73,7 @@ function Model(;iconic_memory, target, viewing_distance=30.0, current_time=0.0, 
 	vision = similar(iconic_memory, 0)
 	acuity = (color = (a=a_color,b=b_color), shape = (a=a_shape,b=b_shape))
 	return Model(iconic_memory, target, abstract_location, vision, viewing_distance, current_time,
-		focus,topdown_weight, bottomup_weight, noise, persistence, acuity, n_finst, finst_span, β₀exe,
+		focus, topdown_weight, bottomup_weight, noise, persistence, acuity, n_finst, finst_span, β₀exe,
 		Δexe, τₐ, Δτ)
 end
 
@@ -81,13 +81,14 @@ mutable struct Data
 	target_present::Symbol
 	target_color::Symbol
 	target_shape::Symbol
+	trial_type::Symbol
 	response::Symbol
 	rt::Float64
 end
 
-Data() = Data(:_, :_, :_, :_, 0.0)
+Data() = Data(fill(:_,5)..., 0.0)
 
-mutable struct Experiment{T1,T2,F}
+mutable struct Experiment{T1,T2,F<:Function}
 	array_width::Float64
 	n_cells::Int64
 	n_trials::Int64

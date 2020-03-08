@@ -110,6 +110,7 @@ end
 function add_response!(model, data, status)
     data.response = status
     data.rt = model.current_time
+    set_trial_type!(data)
     return nothing
 end
 
@@ -348,7 +349,7 @@ function compute_distance(vo1, vo2)
 end
 
 """
-Angular distance in degress. Also known as eccentricity 
+Angular distance in degress. Also known as eccentricity
 """
 function compute_angular_distance(model, vo)
     distance = compute_distance(model, vo)

@@ -1,11 +1,29 @@
 function initialize_trial!(ex::Experiment)
     target = sample_target(ex)
     rand() < ex.base_rate ? (present=:present) : (present=:absent)
-    ex.current_trial = Data()
-    ex.current_trial.target_present = present
-    ex.current_trial.target_shape = target.shape
-    ex.current_trial.target_color = target.color
+    data = Data()
+    data.target_present = present
+    data.target_shape = target.shape
+    data.target_color = target.color
+    ex.current_trial = data
     return target,present
+end
+
+function set_trial_type!(data)
+    if data.target_present == :present
+        if data.response == :present
+            return data.trial_type = :hit
+        else
+            return data.trial_type = :miss
+        end
+    end
+    if data.target_present == :absent
+        if data.response == :present
+            return data.trial_type = :fa
+        else
+            return data.trial_type = :cr
+        end
+    end
 end
 
 get_width(ex) = ex.object_width
