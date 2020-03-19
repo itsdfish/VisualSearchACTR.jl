@@ -67,7 +67,7 @@ mutable struct Model{A,B,T,F}
 end
 
 function Model(;iconic_memory, target, viewing_distance=30.0, current_time=0.0, focus=fill(0.0, 2),
-	topdown_weight=.6, bottomup_weight=1.1, noise=.36, persistence=4.0, a_color=.104,b_color=.85,
+	topdown_weight=.6, bottomup_weight=1.1, noise=.2*π/sqrt(3), persistence=4.0, a_color=.104,b_color=.85,
 	a_shape=.142, b_shape=.96, n_finst=4, finst_span=3.0, β₀exe=.02, Δexe=.002, τₐ=0.0, Δτ=0.4)
 	abstract_location = similar(iconic_memory, 0)
 	vision = similar(iconic_memory, 0)

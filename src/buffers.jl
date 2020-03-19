@@ -78,7 +78,8 @@ function cycle_time!(model, ex)
 end
 
 function attend_time!(model, ex)
-    tΔ = saccade_time(model) + visual_encoding(model)
+    # tΔ = saccade_time(model) + visual_encoding(model)
+    tΔ = visual_encoding(model)
     model.current_time += tΔ
     ex.visible ? sleep(tΔ/ex.speed) : nothing
     return nothing
@@ -94,7 +95,7 @@ function saccade_time(model, vo)
 end
 
 function visual_encoding(model)
-    θ = gamma_parms(.05)
+    θ = gamma_parms(.085)
     return rand(Gamma(θ...))
 end
 
@@ -256,22 +257,22 @@ function bottomup_activations!(iconic_memory)
         activation = 0.0
         for vo2 in iconic_memory
             vo1 == vo2 ? continue : nothing
-            activation += bottomup_activation!(vo1, vo2)
+            activation += bottomup_activation(vo1, vo2)
         end
         vo1.bottomup_activation = activation
     end
     return nothing
 end
 
-function bottomup_activation!(vo1, vo2)
+function bottomup_activation(vo1, vo2)
     distance = compute_distance(vo1, vo2)
-    return bottomup_activation!(vo1.features, vo2.features, distance)
+    return bottomup_activation(vo1.features, vo2.features, distance)
 end
 
-function bottomup_activation!(f1, f2, distance)
+function bottomup_activation(f1, f2, distance)
     activation = 0.0
     for (f,v) in pairs(f1)
-        if (f2[f].value ≠ v.value) || !v.visible || !f2[f].visible
+        if (f2[f].value ≠ v.value) && v.visible && f2[f].visible
             activation += 1.0/sqrt(distance)
         end
     end

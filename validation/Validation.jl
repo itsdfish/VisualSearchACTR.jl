@@ -21,7 +21,7 @@ pyplot()
 savefig("Conjunctive_hit_rate.eps")
 
 @df conj_results plot(:distractors, :rt_mean, group=(:target_present,:response), grid=false,
-     ylims=(0,2.5), linewidth=2, leg=true, ylabel="Mean RT (seconds)", xlabel="Set Size",
+     ylims=(0,3.0), linewidth=2, leg=true, ylabel="Mean RT (seconds)", xlabel="Set Size",
      size=(600,400))
 
 savefig("Conjunctive_set_size.eps")

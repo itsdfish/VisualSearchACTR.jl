@@ -39,22 +39,17 @@ function compute_LL(conditions; kwargs...)
     return LL
 end
 
-
-
 generate_kde(experiment::Experiment) = generate_kde(experiment.data)
 
 function generate_kde(data)
-    T1 = typeof(kernel(rand(2)))
-    preds = Dict{Symbol,Union{Prob,T1}}()
     f(present, response, x) = x.target_present==present && x.response==response
     hits = filter(x->f(:present, :present, x), data)
     misses = filter(x->f(:present, :absent, x), data)
     hits_rt = map(x->x.rt, hits)
     p_hit = length(hits)/(length(hits) + length(misses))
-    dens = kernel(hits_rt)
-    dens.density *= p_hit
-    preds[:hit] = dens
-    preds[:miss] = Prob(1-p_hit)
+    hit_dens = kernel(hits_rt)
+    hit_dens.density *= p_hit
+    miss_dens = Prob(1-p_hit)
     # misses = filter(x->f(:present, :absent, x), data)
     # misses_rt = map(x->x.rt, misses)
     # if isempty(misses_rt)
@@ -68,6 +63,26 @@ function generate_kde(data)
     # end
     cr = filter(x->f(:absent, :absent, x), data)
     cr_rt = map(x->x.rt, cr)
-    preds[:cr] = kernel(cr_rt)
-    return preds
+    cr_dens = kernel(cr_rt)
+    return (hit=hit_dens, miss=miss_dens, cr=cr_dens)
 end
+
+# function generate_kde(data)
+#     T1 = typeof(kernel(rand(2)))
+#     preds = Dict{Symbol,Union{Prob,T1}}()
+#     f(present, response, x) = x.target_present==present && x.response==response
+#     hits = filter(x->f(:present, :present, x), data)
+#     misses = filter(x->f(:present, :absent, x), data)
+#     hits_rt = map(x->x.rt, hits)
+#     p_hit = length(hits)/(length(hits) + length(misses))
+#     dens = kernel(hits_rt)
+#     dens.density *= p_hit
+#     preds[:hit] = dens
+#     preds[:miss] = Prob(1-p_hit)
+#     miss_dens = Prob(1-p_hit)
+#     cr = filter(x->f(:absent, :absent, x), data)
+#     cr_rt = map(x->x.rt, cr)
+#     preds[:cr] = kernel(cr_rt)
+#     cr_dens = kernel(cr_rt)
+#     return preds
+# end

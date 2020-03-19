@@ -2,7 +2,7 @@ using Revise, PAAV, Plots, DataFrames, Statistics, StatsPlots
 
 experiment = Experiment(n_trials=10^1,
     trace=true, visible=true, speed =.2)
-run_trial!(experiment)
+model = run_trial!(experiment)
 
 
 

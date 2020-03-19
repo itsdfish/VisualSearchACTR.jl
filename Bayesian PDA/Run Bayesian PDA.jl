@@ -2,6 +2,8 @@ cd(@__DIR__)
 using Revise, AdvancedPS, PAAV, Random
 include("KDE.jl")
 
+Random.seed!(50225)
+
 function loglike(topdown_weight, conditions)
     return compute_LL(conditions; topdown_weight=topdown_weight)
 end
@@ -12,7 +14,7 @@ priors = (
 
 bounds = ((0.0,Inf),)
 
-set_sizes = [1,2,10,30]
+set_sizes = [5]
 conditions = generate_data(;set_sizes=set_sizes, n_trials=100)
 
 model = DEModel(priors=priors, model=x->loglike(x..., conditions))
