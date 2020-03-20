@@ -126,6 +126,8 @@ function find_object!(model, ex)
         return :error
     end
     max_vo = max_activation(visible_objects)
+    # act = map(x->x.bottomup_activation, visible_objects)
+    # println("mean ", mean(act), " sd: ", std(act), " minimum: ", minimum(act), " maximum: ", maximum(act))
     if terminate(model, max_vo)
         ex.trace ? print_abstract_location(model, "termination threshold exceeded") : nothing
         return :error

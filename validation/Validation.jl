@@ -11,7 +11,7 @@ Random.seed!(524184)
 #################################################################################################
 set_sizes = [1:5...,7,10,15,20,25,30]
 conj_results = run_simulation(set_sizes; fun=conjunctive_set,
-    Δτ=.40, topdown_weight=.60)
+    Δτ=.39, topdown_weight=.66)
 
 pyplot()
 @df conj_results plot(:distractors, :hit_rate, grid=false,

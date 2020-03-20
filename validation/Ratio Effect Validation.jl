@@ -10,12 +10,14 @@ Random.seed!(524184)
 #                               Conjunctive Search
 #################################################################################################
 set_sizes = [1,2,5,10,15]
+
+
 conj_results = run_simulation(set_sizes; fun=conjunctive_ratio,
-    Δτ=.40, topdown_weight=.60)
+    Δτ=.39, topdown_weight=.66)
 
 pyplot()
 @df conj_results plot(:distractors, :hit_rate, grid=false,
-    ylims=(.5,1), leg=false,ylabel="Hit Rate", xlabel="Set Size",
+    ylims=(.5,1), leg=false,ylabel="Accuracy", xlabel="Set Size",
     color=:grey, linewidth=2, xaxis=font(10), yaxis=font(10), size=(600,400))
 
 #savefig("Conjunctive_hit_rate.eps")
