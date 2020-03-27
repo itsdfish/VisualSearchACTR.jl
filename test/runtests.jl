@@ -58,7 +58,7 @@ end
     df_absent = filter(x->x[:target_present] ==:absent && x[:response] ==:absent, results)
     ols_absent = lm(@eval(@formula(rt_mean ~ distractors)), df_absent)
     β0,β1 = coef(ols_absent)
-    @test β0 ≈ 0.43 rtol = .05
+    @test β0 ≈ 0.45 rtol = .05
     @test β1 ≈ 0.0 atol = .01
 end
 
