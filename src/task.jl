@@ -1,3 +1,22 @@
+function run_condition!(ex; parms...)
+    for trial in 1:ex.n_trials
+        run_trial!(ex; parms...)
+    end
+    return nothing
+end
+
+function run_trial!(ex; parms...)
+    target,present = initialize_trial!(ex)
+    visicon = ex.populate_visicon(ex, target..., present)
+    model = Model(;target=target, iconic_memory=visicon, parms...)
+    compute_angular_size!(model)
+    orient!(model, ex)
+    ex.visible ? draw_cross!(model, ex) : nothing
+    ex.trace ? println("\n", get_time(model), " start search sequence") : nothing
+    search!(model, ex)
+    return model
+end
+
 function initialize_trial!(ex::Experiment)
     target = sample_target(ex)
     rand() < ex.base_rate ? (present=:present) : (present=:absent)

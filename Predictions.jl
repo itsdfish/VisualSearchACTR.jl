@@ -1,3 +1,6 @@
+cd(@__DIR__)
+using Pkg
+Pkg.activate("")
 using Revise, PAAV, Plots, DataFrames, Statistics, StatsPlots
 Random.seed!(502241)
 experiment = Experiment(n_trials=10^4, populate_visicon=conjunctive_set,

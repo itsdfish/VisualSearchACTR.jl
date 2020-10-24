@@ -1,16 +1,17 @@
 #################################################################################################
 #                               Load Packages
 #################################################################################################
+cd(@__DIR__)
+using Pkg
+Pkg.activate("..")
 using Revise, PAAV, Plots, DataFrames, Statistics, StatsPlots
 using GLM, Random
-cd(@__DIR__)
 include("simulation ratio effect.jl")
 Random.seed!(524184)
 #################################################################################################
 #                               Conjunctive Search
 #################################################################################################
 set_sizes = [1,2,5,10,15]
-
 
 conj_results = run_simulation(set_sizes; fun=conjunctive_ratio,
     Δτ=.39, topdown_weight=.66)

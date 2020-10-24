@@ -1,6 +1,9 @@
 #################################################################################################
 #                               Load Packages
 #################################################################################################
+cd(@__DIR__)
+using Pkg
+Pkg.activate("..")
 using Revise, PAAV, Plots, DataFrames, Statistics, StatsPlots
 using GLM, Random
 cd(@__DIR__)

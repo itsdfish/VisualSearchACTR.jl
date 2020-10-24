@@ -1,22 +1,3 @@
-function run_condition!(ex; parms...)
-    for trial in 1:ex.n_trials
-        run_trial!(ex; parms...)
-    end
-    return nothing
-end
-
-function run_trial!(ex; parms...)
-    target,present = initialize_trial!(ex)
-    visicon = ex.populate_visicon(ex, target..., present)
-    model = Model(;target=target, iconic_memory=visicon, parms...)
-    compute_angular_size!(model)
-    orient!(model, ex)
-    ex.visible ? draw_cross!(model, ex) : nothing
-    ex.trace ? println("\n", get_time(model), " start search sequence") : nothing
-    search!(model, ex)
-    return model
-end
-
 function search!(model, ex)
     status = :searching
     while status == :searching
@@ -192,7 +173,7 @@ end
 
 function update_decay!(model, object)
     for f in object.features
-        if model.persistance < (model.current_time - f.fixation_time)
+        if model.persistence < (model.current_time - f.fixation_time)
             f.visible = false
             f.fixation_time = 0.0
         end

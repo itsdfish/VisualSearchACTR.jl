@@ -23,7 +23,9 @@ vals = [(color = :gray, shape = :q, x = 338, y =515, value = :q),
 (color = :black, shape = :p,  x = 236 , y = 186, value = :p),
 (color = :black, shape = :p,  x = 398 , y = 300, value = :p),
 (color = :black, shape = :p,  x = 400 , y = 133, value = :p)]
-
+cd(@__DIR__)
+using Pkg
+Pkg.activate("..")
 using Revise, PAAV, Plots, DataFrames, Statistics, StatsPlots
 
 experiment = Experiment(n_trials=10^1,

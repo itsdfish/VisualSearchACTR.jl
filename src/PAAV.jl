@@ -9,7 +9,7 @@ module PAAV
     export orient!, compute_activations!, update_decay!, draw_object!
     export conjunctive_ratio, conjunctive_set, feature_set
     include("structs.jl")
-    include("buffers.jl")
+    include("model.jl")
     include("task.jl")
     include("trace.jl")
     include("draw.jl")

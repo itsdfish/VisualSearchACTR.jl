@@ -42,6 +42,10 @@ end
 * `topdown_weight`: a weight for the influence of top-down activation (1.1)
 * `bottomup_weight`: a weight for the influence of bottom-up activation (0.4)
 * `noise`: noise added to visual activation
+* `persistence`: time during which visible visual objects can stay in iconic memory
+* `acuity`: NamedTuple of acuity parameters
+* `n_finst`: number of visual objects in finst
+* `finst_span`: the duration of finst
 * `τₐ`: activation threshold for terminating search
 *  `Δτ`: activation threshold increment following a fixation to a distractor
 """
@@ -56,7 +60,7 @@ mutable struct Model{A,B,T,F}
 	topdown_weight::Float64
 	bottomup_weight::Float64
 	noise::Float64
-	persistance::Float64
+	persistence::Float64
 	acuity::A
 	n_finst::Int64
 	finst_span::Float64
