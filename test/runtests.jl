@@ -51,7 +51,7 @@ end
             (color = :gray, shape = :q, x = 511 , y = 462),
             (color = :black, shape = :p, x = 511 , y = 400)]
 
-    experiment = Experiment(n_trials=10^1, trace=false, visible=false)
+    experiment = Experiment(n_trials=10^1, trace=true, visible=false)
 
     target = (color=:gray,shape=:p)
     visicon = [VisualObject(features=(color=Feature(;value=x.color), shape=Feature(;value=x.shape)), 
