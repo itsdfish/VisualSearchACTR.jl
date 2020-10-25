@@ -43,6 +43,53 @@ end
     @test sum(x->x.visible, iconic_memory) == 3
 end
 
+@safetestset "Testing Activation" begin
+    using  PAAV, Test
+
+    vals = [(color = :gray, shape = :p, x = 338, y =515),
+            (color = :black, shape = :q, x = 351 , y = 193),
+            (color = :gray, shape = :q, x = 511 , y = 462),
+            (color = :black, shape = :p, x = 511 , y = 400)]
+
+    experiment = Experiment(n_trials=10^1, trace=false, visible=false)
+
+    target = (color=:gray,shape=:p)
+    visicon = [VisualObject(features=(color=Feature(;value=x.color), shape=Feature(;value=x.shape)), 
+        width=32.0, location=[x.x-0.,x.y-0.]) for x in vals]
+
+    model = Model(;target=target, iconic_memory=visicon, noise=0.0)
+    PAAV.compute_angular_size!(model)
+    model.focus = [324.0,324.0]
+    PAAV.update_decay!(model)
+    PAAV.update_finst!(model)
+    PAAV.update_visibility!(model)
+    PAAV.compute_activations!(model)
+
+    correct_top_down = [2,0,1,1]
+    @test all(x->x[2].topdown_activation == x[1], zip(correct_top_down, visicon))
+
+    iconic_memory = model.iconic_memory
+    vo1 = iconic_memory[1]
+    vo2 = iconic_memory[2]
+    distance = PAAV.compute_distance(vo1, vo2)
+    bottomup_activation1 = PAAV.bottomup_activation(vo1.features, vo2.features, distance)
+    @test bottomup_activation1 == 1/sqrt(distance)*2
+
+    vo1 = iconic_memory[1]
+    vo3 = iconic_memory[3]
+    distance = PAAV.compute_distance(vo1, vo3)
+    bottomup_activation2 = PAAV.bottomup_activation(vo1.features, vo3.features, distance)
+    @test bottomup_activation2 == 1/sqrt(distance)
+
+    vo1 = iconic_memory[1]
+    vo4 = iconic_memory[4]
+    distance = PAAV.compute_distance(vo1, vo4)
+    bottomup_activation3 = PAAV.bottomup_activation(vo1.features, vo4.features, distance)
+    @test bottomup_activation3 == 1/sqrt(distance)
+
+    @test vo1.bottomup_activation == (bottomup_activation1 + bottomup_activation2 + bottomup_activation3)
+end
+
 @safetestset "Testing Feature Search" begin
     using PAAV, Test, DataFrames, GLM, Statistics
     include("simulation.jl")

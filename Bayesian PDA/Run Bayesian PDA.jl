@@ -1,5 +1,5 @@
 cd(@__DIR__)
-using Revise, AdvancedPS, PAAV, Random
+using Revise, DifferentialEvolutionMCMC, PAAV, Random
 include("KDE.jl")
 
 Random.seed!(50225)

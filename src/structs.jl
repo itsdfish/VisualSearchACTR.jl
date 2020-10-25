@@ -92,6 +92,27 @@ end
 
 Data() = Data(fill(:_,5)..., 0.0)
 
+"""
+* `array_width`: with of visual array in pixels
+* `n_cells`: number of cells in visual array grid
+* `n_trials`: number of trials in simulation
+* `cell_width`: width of cell that contains ≤ 1 visual objects
+* `object_width`: width of visual object in pixels
+* `n_color_distractors`: number of distractors for color
+* `n_shape_distractors`: number of distractors for shape
+* `set_size`: number of elements in visual array
+* `colors`: tuple of colors
+* `shapes`: tuple of shapes
+* `base_rate`: probability that target is present
+* `data`: Array of Data for all trials
+* `current_trial`: Data for current trial
+* `trace`: displays trace if true
+* `window`: GUI window
+* `canvas`: GUI canvas
+* `visible`: displays GUI if true
+* `speed`: how quickly to simulate the model if trace is on
+* `populate_visicon`: a function that populates the visicon
+"""
 mutable struct Experiment{T1,T2,F<:Function}
 	array_width::Float64
 	n_cells::Int64
