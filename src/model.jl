@@ -1,81 +1,82 @@
-function search!(model, ex)
+function search!(actr, ex)
     status = :searching
     while status == :searching
-        update_decay!(model)
-        update_finst!(model)
-        update_visibility!(model)
-        compute_activations!(model)
-        ex.visible ? update_window!(model, ex) : nothing
-        status = _search!(model, ex)
-        ex.visible ? update_window!(model, ex) : nothing
+        update_decay!(actr)
+        update_finst!(actr)
+        update_visibility!(actr)
+        compute_activations!(actr)
+        ex.visible ? update_window!(actr, ex) : nothing
+        status = _search!(actr, ex)
+        ex.visible ? update_window!(actr, ex) : nothing
     end
     add_data!(ex)
     return nothing
 end
 
-function _search!(model, ex)
+function _search!(actr, ex)
     # Finding object in abstract-location
     ex.trace ? print_trial(ex) : nothing
     data = ex.current_trial
-    cycle_time!(model, ex)
-    status = find_object!(model, ex)
+    cycle_time!(actr, ex)
+    status = find_object!(actr, ex)
     if status == :error
-        cycle_time!(model, ex)
-        motor_time!(model, ex)
-        ex.trace ? print_response(model, "absent") : nothing
-        add_response!(model, data, :absent)
+        cycle_time!(actr, ex)
+        motor_time!(actr, ex)
+        ex.trace ? print_response(actr, "absent") : nothing
+        add_response!(actr, data, :absent)
         return status
     end
     # Attending object in abstract-location
-    cycle_time!(model, ex)
-    attend_time!(model, ex)
-    attend_object!(model, ex)
-    cycle_time!(model, ex)
-    status = check_object(model, ex)
+    cycle_time!(actr, ex)
+    attend_time!(actr, ex)
+    attend_object!(actr, ex)
+    cycle_time!(actr, ex)
+    status = check_object(actr, ex)
     if status == :present
-        cycle_time!(model, ex)
-        motor_time!(model, ex)
-        ex.trace ? print_response(model, "present") : nothing
-        add_response!(model, data, status)
+        cycle_time!(actr, ex)
+        motor_time!(actr, ex)
+        ex.trace ? print_response(actr, "present") : nothing
+        add_response!(actr, data, status)
         return status
     end
     return status
 end
 
-function motor_time!(model, ex)
+function motor_time!(actr, ex)
     θ = gamma_parms(.065)
     tΔ = rand(Gamma(θ...))
-    model.current_time += tΔ
+    actr.time += tΔ
     ex.visible ? sleep(tΔ/ex.speed) : nothing
     return nothing
  end
 
-function cycle_time!(model, ex)
+function cycle_time!(actr, ex)
     θ = gamma_parms(.05)
     tΔ = rand(Gamma(θ...))
-    model.current_time += tΔ
+    actr.time += tΔ
     ex.visible ? sleep(tΔ/ex.speed) : nothing
     return nothing
 end
 
-function attend_time!(model, ex)
+function attend_time!(actr, ex)
     # tΔ = saccade_time(model) + visual_encoding(model)
-    tΔ = visual_encoding(model)
-    model.current_time += tΔ
+    tΔ = visual_encoding(actr)
+    actr.time += tΔ
     ex.visible ? sleep(tΔ/ex.speed) : nothing
     return nothing
 end
 
-saccade_time(model) = saccade_time(model, model.abstract_location[1])
+saccade_time(actr) = saccade_time(actr, actr.visual_location.buffer[1])
 
-function saccade_time(model, vo)
-    distance = compute_angular_distance(model, vo)
-    μ = model.β₀exe + distance*model.Δexe
+function saccade_time(actr, vo)
+    @unpack Δexe, β₀exe = actr.parms
+    distance = compute_angular_distance(actr, vo)
+    μ = β₀exe + distance*Δexe
     θ = gamma_parms(μ)
     return rand(Gamma(θ...))
 end
 
-function visual_encoding(model)
+function visual_encoding(actr)
     θ = gamma_parms(.085)
     return rand(Gamma(θ...))
 end
@@ -89,58 +90,58 @@ function add_data!(ex)
     return nothing
 end
 
-function add_response!(model, data, status)
+function add_response!(actr, data, status)
     data.response = status
-    data.rt = model.current_time
+    data.rt = actr.time
     set_trial_type!(data)
     return nothing
 end
 
-function relevant_object(model, vo)
+function relevant_object(actr, vo)
     !vo.visible || vo.attended ? (return false) : (return true)
 end
 
-function find_object!(model, ex)
-    visible_objects = filter(x->relevant_object(model, x), model.iconic_memory)
+function find_object!(actr, ex)
+    visible_objects = filter(x->relevant_object(actr, x), get_iconic_memory(actr))
     if isempty(visible_objects)
-        ex.trace ? print_abstract_location(model, "error locating object") : nothing
+        ex.trace ? print_abstract_location(actr, "error locating object") : nothing
         return :error
     end
     max_vo = max_activation(visible_objects)
     # act = map(x->x.bottomup_activation, visible_objects)
     # println("mean ", mean(act), " sd: ", std(act), " minimum: ", minimum(act), " maximum: ", maximum(act))
-    if terminate(model, max_vo)
-        ex.trace ? print_abstract_location(model, "termination threshold exceeded") : nothing
+    if terminate(actr, max_vo)
+        ex.trace ? print_abstract_location(actr, "termination threshold exceeded") : nothing
         return :error
     end
-    model.abstract_location = max_vo
-    ex.trace ? print_abstract_location(model, "object found") : nothing
+    actr.visual_location.buffer = max_vo
+    ex.trace ? print_abstract_location(actr, "object found") : nothing
     return :searching
 end
 
-attend_object!(model, ex) = attend_object!(model, ex, model.abstract_location[1])
+attend_object!(actr, ex) = attend_object!(actr, ex, actr.visual_location.buffer[1])
 
-function attend_object!(model, ex, vo)
-    ex.trace ? print_vision(model) : nothing
-    model.vision = [vo]
+function attend_object!(actr, ex, vo)
+    ex.trace ? print_vision(actr) : nothing
+    actr.visual.buffer = [vo]
     vo.attended = true
-    vo.attend_time = model.current_time
-    model.focus = vo.location
-    ex.trace ? print_visual_buffer(model) : nothing
+    vo.attend_time = actr.time
+    actr.visual.focus = vo.location
+    ex.trace ? print_visual_buffer(actr) : nothing
     return nothing
 end
 
-check_object(model, ex) = check_object(model, model.vision[1], ex, model.target)
+check_object(actr, ex) = check_object(actr, actr.visual.buffer[1], ex, actr.goal.buffer[1])
 
-function check_object(model, vo, ex, target)
-    for (f,v) in pairs(target)
+function check_object(actr, vo, ex, target)
+    for (f,v) in pairs(target.slots)
         if vo.features[f].value ≠ v
-            ex.trace ? print_check(model, "not found") : nothing
-            update_threshold!(model)
+            ex.trace ? print_check(actr, "not found") : nothing
+            update_threshold!(actr)
             return :searching
         end
     end
-    ex.trace ? print_check(model, "found") : nothing
+    ex.trace ? print_check(actr, "found") : nothing
     return :present
 end
 
@@ -156,24 +157,24 @@ function max_activation(vos)
     return max_vo
 end
 
-function update_threshold!(model)
-    model.τₐ += model.Δτ
+function update_threshold!(actr)
+    actr.parms.τₐ += actr.parms.Δτ
 end
 
-terminate(model, max_vo) = terminate(model, max_vo[1])
+terminate(actr, max_vo) = terminate(actr, max_vo[1])
 
-function terminate(model, max_vo::VisualObject)
-    τ = model.τₐ + add_noise(model)
+function terminate(actr, max_vo::VisualObject)
+    τ = actr.parms.τₐ + add_noise(actr)
     τ > max_vo.activation ? (return true) : (return false)
 end
 
-function update_decay!(model)
-    map(x->update_decay!(model, x), model.iconic_memory)
+function update_decay!(actr)
+    map(x->update_decay!(actr, x), get_iconic_memory(actr))
 end
 
-function update_decay!(model, object)
+function update_decay!(actr, object)
     for f in object.features
-        if model.persistence < (model.current_time - f.fixation_time)
+        if actr.parms.persistence < (actr.time - f.fixation_time)
             f.visible = false
             f.fixation_time = 0.0
         end
@@ -181,23 +182,23 @@ function update_decay!(model, object)
     return nothing
 end
 
-function update_finst!(model)
-    attended_objects = filter(x->x.attended, model.iconic_memory)
+function update_finst!(actr)
+    attended_objects = filter(x->x.attended, get_iconic_memory(actr))
     isempty(attended_objects) ? (return) : nothing
-    map(x->update_finst_span!(model, x), attended_objects)
-    update_n_finst!(model, attended_objects)
+    map(x->update_finst_span!(actr, x), attended_objects)
+    update_n_finst!(actr, attended_objects)
 end
 
-function update_finst_span!(model, vo)
-    if model.finst_span < (model.current_time - vo.attend_time)
+function update_finst_span!(actr, vo)
+    if actr.parms.finst_span < (actr.time - vo.attend_time)
         vo.attended = false
         vo.attend_time = 0.0
     end
     return nothing
 end
 
-function update_n_finst!(model, vos)
-    N = length(vos) - model.n_finst
+function update_n_finst!(actr, vos)
+    N = length(vos) - actr.parms.n_finst
     N <= 0 ? (return) : nothing
     sort!(vos, by=x->x.attend_time)
     for i in 1:N
@@ -207,12 +208,13 @@ function update_n_finst!(model, vos)
     return nothing
 end
 
-function compute_activations!(model)
-    iconic_memory = filter(x->x.visible, model.iconic_memory)
-    topdown_activations!(iconic_memory, model.target)
+function compute_activations!(actr)
+    @unpack iconic_memory,visicon = actr.visual_location
+    iconic_memory = filter(x->x.visible, visicon)
+    topdown_activations!(iconic_memory, actr.goal.buffer[1])
     bottomup_activations!(iconic_memory)
-    weighted_activations!(model, iconic_memory)
-    add_noise!(model, iconic_memory)
+    weighted_activations!(actr, iconic_memory)
+    add_noise!(actr, iconic_memory)
     return nothing
 end
 
@@ -223,17 +225,17 @@ function weighted_activations!(model, iconic_memory)
     return nothing
 end
 
-function weighted_activation!(model, vo)
-    vo.activation = weighted_activation(model, vo)
+function weighted_activation!(actr, vo)
+    vo.activation = weighted_activation(actr, vo)
     return nothing
 end
 
-function weighted_activation(model, vo)
-    return model.bottomup_weight * vo.bottomup_activation +
-    model.topdown_weight * vo.topdown_activation
+function weighted_activation(actr, vo)
+    return actr.parms.bottomup_weight * vo.bottomup_activation +
+    actr.parms.topdown_weight * vo.topdown_activation
 end
 
-bottomup_activations!(model::Model) = bottomup_activations!(model.iconic_memory)
+bottomup_activations!(actr::ACTR) = bottomup_activations!(get_iconic_memory(actr))
 
 function bottomup_activations!(iconic_memory)
     for vo1 in iconic_memory
@@ -262,6 +264,8 @@ function bottomup_activation(f1, f2, distance)
     return activation
 end
 
+topdown_activations!(iconic_memory, chunk::Chunk) = topdown_activations!(iconic_memory, chunk.slots) 
+
 function topdown_activations!(iconic_memory, target)
     for object in iconic_memory
         topdown_activation!(object, target)
@@ -284,21 +288,21 @@ function topdown_activation!(object, target)
     return nothing
 end
 
-add_noise(model) = rand(Normal(0, model.noise))
+add_noise(actr) = rand(Normal(0, actr.parms.noise))
 
-add_noise!(model, vo::VisualObject) = vo.activation += add_noise(model)
+add_noise!(actr, vo::VisualObject) = vo.activation += add_noise(actr)
 
-add_noise!(model, iconic_memory) = map(x->add_noise!(model, x), iconic_memory)
+add_noise!(actr, iconic_memory) = map(x->add_noise!(actr, x), iconic_memory)
 
-function update_visibility!(model)
-    map(x->feature_visibility!(model, x), model.iconic_memory)
-    map(x->object_visibility!(x), model.iconic_memory)
+function update_visibility!(actr)
+    map(x->feature_visibility!(actr, x), get_iconic_memory(actr))
+    map(x->object_visibility!(x), get_iconic_memory(actr))
 end
 
-function feature_visibility!(model, vo)
-    angular_distance = compute_angular_distance(model, vo)
+function feature_visibility!(actr, vo)
+    angular_distance = compute_angular_distance(actr, vo)
     for (f,v) in pairs(vo.features)
-        parms = model.acuity[f]
+        parms = actr.parms.acuity[f]
         threshold = compute_acuity_threshold(parms, angular_distance)
         if feature_is_visible(vo, threshold)
             v.visible = true
@@ -324,8 +328,8 @@ function object_visibility!(object)
     return nothing
 end
 
-function compute_distance(model::Model, object)
-    sqrt(sum((model.focus .- object.location).^2))
+function compute_distance(actr::ACTR, object)
+    sqrt(sum((actr.visual.focus .- object.location).^2))
 end
 
 function compute_distance(vo1, vo2)
@@ -335,19 +339,19 @@ end
 """
 Angular distance in degress. Also known as eccentricity
 """
-function compute_angular_distance(model, vo)
-    distance = compute_distance(model, vo)
-    return pixels_to_degrees(model, distance)
+function compute_angular_distance(actr, vo)
+    distance = compute_distance(actr, vo)
+    return pixels_to_degrees(actr, distance)
 end
 
-function compute_angular_size!(model)
-    map(x->compute_angular_size!(model, x), model.iconic_memory)
+function compute_angular_size!(actr)
+    map(x->compute_angular_size!(actr, x), get_visicon(actr))
     return nothing
 end
 
-function compute_angular_size!(model, vo)
+function compute_angular_size!(actr, vo)
     ppi = 72 # pixels per inch
-    distance = model.viewing_distance*ppi
+    distance = actr.parms.viewing_distance*ppi
     vo.angular_size = compute_angular_size(distance, vo.width)
 end
 
@@ -356,21 +360,24 @@ function compute_angular_size(distance, width)
     return rad2deg(radians)
 end
 
+get_iconic_memory(actr) = actr.visual_location.iconic_memory 
+get_visicon(actr) = actr.visual_location.visicon
+
 rad2deg(radians) = radians*180/pi
 
 function compute_acuity_threshold(parms, angular_distance)
     return parms.a*angular_distance^2 - parms.b*angular_distance
 end
 
-function pixels_to_degrees(model, pixels)
+function pixels_to_degrees(actr, pixels)
     ppi = 72 # pixels per inch
-    radians = atan(pixels/ppi, model.viewing_distance)
+    radians = atan(pixels/ppi, actr.parms.viewing_distance)
     return rad2deg(radians)
 end
 
-function orient!(model, ex)
+function orient!(actr, ex)
     w = ex.array_width/2
-    model.focus = fill(w, 2)
+    actr.visual.focus = fill(w, 2)
 end
 
 # visual_encoding(model) = visual_encoding(model, model.abstract_location[1])

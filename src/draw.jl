@@ -1,17 +1,17 @@
-function update_window!(model, ex)
+function update_window!(actr, ex)
     refresh!(ex)
-    draw_target!(model, ex)
-    draw_focus!(model, ex)
-    bounds = get_min_max(model)
-    for vo in model.iconic_memory
+    draw_target!(actr, ex)
+    draw_focus!(actr, ex)
+    bounds = get_min_max(actr)
+    for vo in actr.visual_location.iconic_memory
         heat = compute_heat(vo, bounds...)
         draw_object!(ex, vo, heat)
     end
 end
 
-function draw_cross!(model, ex)
+function draw_cross!(actr, ex)
     refresh!(ex)
-    draw_focus!(model, ex)
+    draw_focus!(actr, ex)
     ex.visible ? sleep(.30/ex.speed) : nothing
     return nothing
 end
@@ -48,10 +48,10 @@ function draw_object!(ex, vo, heat)
     return nothing
 end
 
-function draw_focus!(model, ex)
+function draw_focus!(actr, ex)
     c = ex.canvas
-    w = model.iconic_memory[1].width
-    x,y = model.focus
+    w = actr.visual_location.visicon[1].width
+    x,y = actr.visual.focus
     @guarded draw(c) do widget
         ctx = getgc(c)
         circle(ctx, x, y, w/2)
@@ -63,8 +63,8 @@ function draw_focus!(model, ex)
     return nothing
 end
 
-function draw_target!(model, ex)
-    target = filter(x->x.target, model.iconic_memory)
+function draw_target!(actr, ex)
+    target = filter(x->x.target, actr.visual_location.iconic_memory)
     isempty(target) ? (return) : nothing
     c = ex.canvas
     w = target[1].width
@@ -101,7 +101,7 @@ get_text(vo) = string(vo.features.shape.value)
 
 get_color(vo) = Colors.parse(Colorant, string(vo.features.color.value))
 
-get_min_max(model::Model) = get_min_max(model.iconic_memory)
+get_min_max(actr::ACTR) = get_min_max(actr.visual_location.iconic_memory)
 
 function get_min_max(iconic_memory)
     mn,mx = Inf,-Inf

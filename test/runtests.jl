@@ -3,9 +3,18 @@ using SafeTestsets
 @safetestset "Testing Finsts" begin
     using  PAAV, Test
     ex = Experiment()
-    target,present = initialize_trial!(ex)
-    iconic_memory = ex.populate_visicon(ex, target..., present)
-    model = Model(;target=target, iconic_memory=iconic_memory, current_time=4.0)
+    # target,present = initialize_trial!(ex)
+    # iconic_memory = ex.populate_visicon(ex, target..., present)
+    # model = Model(;target=target, iconic_memory=iconic_memory, current_time=4.0)
+    visual_objects = ex.populate_visicon(ex, target..., present)
+    T = typeof(visual_objects)
+    visual_location = VisualLocation(buffer=T)
+    visual_location.visicon = visual_objects
+    visual_location.iconic_memory = visual_objects
+    target_chunk = Chunk(;target...)
+    goal = Goal(buffer=target_chunk)
+    visual = Visual(buffer=T)
+    actr = ACTR(;T=Parm, goal=goal, visual_location=visual_location, visual=visual)
     map(x->x.attended=true, iconic_memory)
     map(x->x.attend_time = 0.0, iconic_memory)
     iconic_memory[1].attend_time = 1.1

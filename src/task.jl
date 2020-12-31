@@ -1,20 +1,27 @@
-function run_condition!(ex; parms...)
+function run_condition!(ex, actr; parms...)
     for trial in 1:ex.n_trials
-        run_trial!(ex; parms...)
+        run_trial!(ex, actr; parms...)
     end
     return nothing
 end
 
 function run_trial!(ex; parms...)
     target,present = initialize_trial!(ex)
-    visicon = ex.populate_visicon(ex, target..., present)
-    model = Model(;target=target, iconic_memory=visicon, parms...)
-    compute_angular_size!(model)
-    orient!(model, ex)
-    ex.visible ? draw_cross!(model, ex) : nothing
-    ex.trace ? println("\n", get_time(model), " start search sequence") : nothing
-    search!(model, ex)
-    return model
+    visual_objects = ex.populate_visicon(ex, target..., present)
+    T = typeof(visual_objects)
+    visual_location = VisualLocation(buffer=T)
+    visual_location.visicon = visual_objects
+    visual_location.iconic_memory = visual_objects
+    target_chunk = Chunk(;target...)
+    goal = Goal(buffer=target_chunk)
+    visual = Visual(buffer=T)
+    actr = ACTR(;T=Parm, goal=goal, visual_location=visual_location, visual=visual, parms...)
+    compute_angular_size!(actr)
+    orient!(actr, ex)
+    ex.visible ? draw_cross!(actr, ex) : nothing
+    ex.trace ? println("\n", get_time(actr), " start search sequence") : nothing
+    search!(actr, ex)
+    return actr
 end
 
 function initialize_trial!(ex::Experiment)
