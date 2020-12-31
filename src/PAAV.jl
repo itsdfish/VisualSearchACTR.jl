@@ -4,6 +4,7 @@ module PAAV
     @reexport using Random, ACTRModels
     import ACTRModels: AbstractParms
     export Experiment, VisualObject, Feature, Data, Parm
+    export get_iconic_memory
     export populate_features, populate_visicon, initialize_trial!
     export feature_visibility!, compute_angular_distance, compute_acuity_threshold
     export compute_angular_size, update_visibility!, run_trial!, run_condition!

@@ -1,6 +1,6 @@
-function run_condition!(ex, actr; parms...)
+function run_condition!(ex; parms...)
     for trial in 1:ex.n_trials
-        run_trial!(ex, actr; parms...)
+        run_trial!(ex; parms...)
     end
     return nothing
 end

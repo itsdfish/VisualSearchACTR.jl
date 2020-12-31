@@ -3,9 +3,7 @@ using SafeTestsets
 @safetestset "Testing Finsts" begin
     using  PAAV, Test
     ex = Experiment()
-    # target,present = initialize_trial!(ex)
-    # iconic_memory = ex.populate_visicon(ex, target..., present)
-    # model = Model(;target=target, iconic_memory=iconic_memory, current_time=4.0)
+    target,present = initialize_trial!(ex)
     visual_objects = ex.populate_visicon(ex, target..., present)
     T = typeof(visual_objects)
     visual_location = VisualLocation(buffer=T)
@@ -15,6 +13,7 @@ using SafeTestsets
     goal = Goal(buffer=target_chunk)
     visual = Visual(buffer=T)
     actr = ACTR(;T=Parm, goal=goal, visual_location=visual_location, visual=visual)
+    iconic_memory = get_iconic_memory(actr)
     map(x->x.attended=true, iconic_memory)
     map(x->x.attend_time = 0.0, iconic_memory)
     iconic_memory[1].attend_time = 1.1
@@ -22,33 +21,41 @@ using SafeTestsets
     iconic_memory[3].attend_time = 1.1
     iconic_memory[4].attend_time = 1.1
     iconic_memory[6].attend_time = 2.0
-    PAAV.update_finst!(model)
+    PAAV.update_finst!(actr)
     @test iconic_memory[6].attend_time == 2.0
     @test iconic_memory[6].attended
-    @test sum(x->x.attended, iconic_memory) == model.n_finst
-    @test maximum(x->x.attend_time, iconic_memory) <= model.finst_span
+    @test sum(x->x.attended, iconic_memory) == actr.parms.n_finst
+    @test maximum(x->x.attend_time, iconic_memory) <= actr.parms.finst_span
 end
 
 @safetestset "Testing Iconic Decay" begin
     using  PAAV, Test
     ex = Experiment()
     target,present = initialize_trial!(ex)
-    iconic_memory = ex.populate_visicon(ex, target..., present)
-    model = Model(;target=target, iconic_memory=iconic_memory, current_time=4.0,
-        persistence=1.0)
+    visual_objects = ex.populate_visicon(ex, target..., present)
+    T = typeof(visual_objects)
+    visual_location = VisualLocation(buffer=T)
+    visual_location.visicon = visual_objects
+    visual_location.iconic_memory = visual_objects
+    target_chunk = Chunk(;target...)
+    goal = Goal(buffer=target_chunk)
+    visual = Visual(buffer=T)
+    actr = ACTR(;T=Parm, goal=goal, visual_location=visual_location, visual=visual, persistence=1.0,
+        time=4.0)
+    iconic_memory = get_iconic_memory(actr)
     visible_objects = iconic_memory[1:5]
     map(x->x.features.color.visible=true, visible_objects[1:2])
     map(x->x.features.color.fixation_time=5.0, visible_objects[1:2])
     map(x->x.features.shape.visible=true, visible_objects[3:end])
     map(x->x.features.shape.fixation_time=6.0, visible_objects[3:end])
-    map(x->PAAV.object_visibility!(x), model.iconic_memory)
+    map(x->PAAV.object_visibility!(x), iconic_memory)
     @test sum(x->x.visible, iconic_memory) == 5
-    PAAV.update_decay!(model)
-    map(x->PAAV.object_visibility!(x), model.iconic_memory)
+    PAAV.update_decay!(actr)
+    map(x->PAAV.object_visibility!(x), iconic_memory)
     @test sum(x->x.visible, iconic_memory) == 5
-    model.current_time = 6.5
-    PAAV.update_decay!(model)
-    map(x->PAAV.object_visibility!(x), model.iconic_memory)
+    actr.time = 6.5
+    PAAV.update_decay!(actr)
+    map(x->PAAV.object_visibility!(x), iconic_memory)
     @test sum(x->x.visible, iconic_memory) == 3
 end
 
@@ -63,21 +70,30 @@ end
     experiment = Experiment(n_trials=10^1, trace=true, visible=false)
 
     target = (color=:gray,shape=:p)
-    visicon = [VisualObject(features=(color=Feature(;value=x.color), shape=Feature(;value=x.shape)), 
+    visual_objects = [VisualObject(features=(color=Feature(;value=x.color), shape=Feature(;value=x.shape)), 
         width=32.0, location=[x.x-0.,x.y-0.]) for x in vals]
 
-    model = Model(;target=target, iconic_memory=visicon, noise=0.0)
-    PAAV.compute_angular_size!(model)
-    model.focus = [324.0,324.0]
-    PAAV.update_decay!(model)
-    PAAV.update_finst!(model)
-    PAAV.update_visibility!(model)
-    PAAV.compute_activations!(model)
+    T = typeof(visual_objects)
+    visual_location = VisualLocation(buffer=T)
+    visual_location.visicon = visual_objects
+    visual_location.iconic_memory = visual_objects
+    target_chunk = Chunk(;target...)
+    goal = Goal(buffer=target_chunk)
+    visual = Visual(buffer=T)
+    actr = ACTR(;T=Parm, goal=goal, visual_location=visual_location, visual=visual, noise=0.0)
+    iconic_memory = get_iconic_memory(actr)
+
+    # model = Model(;target=target, iconic_memory=visicon, noise=0.0)
+    PAAV.compute_angular_size!(actr)
+    actr.visual.focus = [324.0,324.0]
+    PAAV.update_decay!(actr)
+    PAAV.update_finst!(actr)
+    PAAV.update_visibility!(actr)
+    PAAV.compute_activations!(actr)
 
     correct_top_down = [2,0,1,1]
-    @test all(x->x[2].topdown_activation == x[1], zip(correct_top_down, visicon))
+    @test all(x->x[2].topdown_activation == x[1], zip(correct_top_down, iconic_memory))
 
-    iconic_memory = model.iconic_memory
     vo1 = iconic_memory[1]
     vo2 = iconic_memory[2]
     distance = PAAV.compute_distance(vo1, vo2)
