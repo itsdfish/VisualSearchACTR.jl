@@ -5,17 +5,21 @@ function run_condition!(ex; parms...)
     return nothing
 end
 
-function run_trial!(ex; parms...)
+function initialize_model(;parms...)
     target,present = initialize_trial!(ex)
     visual_objects = ex.populate_visicon(ex, target..., present)
-    T = typeof(visual_objects)
+    T = typeof(visual_objects)(undef,1)
     visual_location = VisualLocation(buffer=T)
     visual_location.visicon = visual_objects
     visual_location.iconic_memory = visual_objects
     target_chunk = Chunk(;target...)
     goal = Goal(buffer=target_chunk)
     visual = Visual(buffer=T)
-    actr = ACTR(;T=Parm, goal=goal, visual_location=visual_location, visual=visual, parms...)
+    actr = ACTR(;goal=goal, visual_location=visual_location, visual=visual, parms...)
+end
+
+function run_trial!(ex; parms...)
+    actr = initialize_model(;parms...)
     compute_angular_size!(actr)
     orient!(actr, ex)
     ex.visible ? draw_cross!(actr, ex) : nothing

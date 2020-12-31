@@ -360,9 +360,6 @@ function compute_angular_size(distance, width)
     return rad2deg(radians)
 end
 
-get_iconic_memory(actr) = actr.visual_location.iconic_memory 
-get_visicon(actr) = actr.visual_location.visicon
-
 rad2deg(radians) = radians*180/pi
 
 function compute_acuity_threshold(parms, angular_distance)
@@ -378,6 +375,13 @@ end
 function orient!(actr, ex)
     w = ex.array_width/2
     actr.visual.focus = fill(w, 2)
+end
+
+function ACTR(;declarative=Declarative(), imaginal=Imaginal(), 
+    goal = Goal(), scheduler=nothing, visual=nothing, visual_location=nothing, 
+    time = 0.0, parms...) 
+    parms′ = Parm(;parms...)
+    ACTR(declarative, imaginal, visual, visual_location, goal, parms′, scheduler, time)
 end
 
 # visual_encoding(model) = visual_encoding(model, model.abstract_location[1])
