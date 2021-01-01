@@ -5,7 +5,7 @@ function run_condition!(ex; parms...)
     return nothing
 end
 
-function initialize_model(;parms...)
+function initialize_model(ex; parms...)
     target,present = initialize_trial!(ex)
     visual_objects = ex.populate_visicon(ex, target..., present)
     T = typeof(visual_objects)(undef,1)
@@ -19,7 +19,7 @@ function initialize_model(;parms...)
 end
 
 function run_trial!(ex; parms...)
-    actr = initialize_model(;parms...)
+    actr = initialize_model(ex; parms...)
     compute_angular_size!(actr)
     orient!(actr, ex)
     ex.visible ? draw_cross!(actr, ex) : nothing
@@ -30,7 +30,7 @@ end
 
 function initialize_trial!(ex::Experiment)
     target = sample_target(ex)
-    rand() < ex.base_rate ? (present=:present) : (present=:absent)
+    present = rand() < ex.base_rate ? :present : :absent
     data = Data()
     data.target_present = present
     data.target_shape = target.shape
