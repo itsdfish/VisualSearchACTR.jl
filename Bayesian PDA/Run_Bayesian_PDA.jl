@@ -17,9 +17,9 @@ priors = (
 bounds = ((0.0,Inf),)
 
 set_sizes = [5]
-conditions = generate_data(;set_sizes=set_sizes, n_trials=100)
+data = generate_data(;set_sizes=set_sizes, n_trials=100)
 
-model = DEModel(priors=priors, model=x->loglike(x..., conditions))
+model = DEModel(;priors=priors, model=loglike, data)
 
 de = DE(bounds=bounds, burnin=1000, priors=priors)
 n_iter = 2000

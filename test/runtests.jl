@@ -12,7 +12,7 @@ using SafeTestsets
     target_chunk = Chunk(;target...)
     goal = Goal(buffer=target_chunk)
     visual = Visual(buffer=T)
-    actr = ACTR(;T=Parm, goal=goal, visual_location=visual_location, visual=visual)
+    actr = ACTRV(;T=Parm, goal=goal, visual_location=visual_location, visual=visual)
     iconic_memory = get_iconic_memory(actr)
     map(x->x.attended=true, iconic_memory)
     map(x->x.attend_time = 0.0, iconic_memory)
@@ -40,7 +40,7 @@ end
     target_chunk = Chunk(;target...)
     goal = Goal(buffer=target_chunk)
     visual = Visual(buffer=T)
-    actr = ACTR(;T=Parm, goal=goal, visual_location=visual_location, visual=visual, persistence=1.0,
+    actr = ACTRV(;T=Parm, goal=goal, visual_location=visual_location, visual=visual, persistence=1.0,
         time=4.0)
     iconic_memory = get_iconic_memory(actr)
     visible_objects = iconic_memory[1:5]
@@ -80,7 +80,7 @@ end
     target_chunk = Chunk(;target...)
     goal = Goal(buffer=target_chunk)
     visual = Visual(buffer=T)
-    actr = ACTR(;T=Parm, goal=goal, visual_location=visual_location, visual=visual, noise=0.0)
+    actr = ACTRV(;T=Parm, goal=goal, visual_location=visual_location, visual=visual, noise=0.0)
     iconic_memory = get_iconic_memory(actr)
 
     # model = Model(;target=target, iconic_memory=visicon, noise=0.0)

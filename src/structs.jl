@@ -68,6 +68,40 @@ function Parm(;viewing_distance=30.0, topdown_weight=.66, bottomup_weight=1.1, n
 		noise, persistence, acuity, n_finst, finst_span, β₀exe, Δexe, τₐ, Δτ, args.data)
 end
 
+"""
+**ACTRV**
+
+ACTR model object
+- `declarative`: declarative memory module
+- `imaginal`: imaginal memory module
+- `visual`: visual module
+- `goal`: goal module
+- `visual_location`: visual location module
+- `parms`: model parameters
+- `time`: model time
+
+Constructor
+````julia 
+ACTRV(;declarative=Declarative(), imaginal=Imaginal(), goal = Goal(), 
+    scheduler=nothing, visual=nothing, visual_location=nothing, time=0.0, parms...) 
+````
+"""
+mutable struct ACTRV{T1,T2,T3,T4,T5,T6,T7} <: AbstractACTR
+    declarative::T1
+    imaginal::T2
+    visual::T3
+    visual_location::T4
+    goal::T5
+    parms::T6
+    time::T7
+end
+
+function ACTRV(;declarative=Declarative(), imaginal=Imaginal(), goal = Goal(), 
+    scheduler=nothing, visual=nothing, visual_location=nothing, time=0.0, parms...) 
+    parms′ = Parm(;parms...)
+    ACTRV(declarative, imaginal, visual, visual_location, goal, parms′, time)
+end
+
 mutable struct Data
 	target_present::Symbol
 	target_color::Symbol

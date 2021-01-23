@@ -9,7 +9,7 @@ struct Prob <: ContinuousUnivariateDistribution
     θ::Float64
 end
 
-pdf(dist::Prob, data) = dist.θ
+pdf(dist::Prob, data::Real) = dist.θ
 
 function generate_data(;set_sizes, n_trials, kwargs...)
     experiments = map(x->Experiment(n_trials=n_trials,

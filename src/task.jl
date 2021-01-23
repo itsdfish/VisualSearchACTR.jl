@@ -8,14 +8,14 @@ end
 function initialize_model(ex; parms...)
     target,present = initialize_trial!(ex)
     visual_objects = ex.populate_visicon(ex, target..., present)
-    T = typeof(visual_objects)(undef,1)
-    visual_location = VisualLocation(buffer=T)
+    T = eltype(visual_objects)
+    visual_location = VisualLocation(buffer=T[])
     visual_location.visicon = visual_objects
     visual_location.iconic_memory = visual_objects
     target_chunk = Chunk(;target...)
     goal = Goal(buffer=target_chunk)
-    visual = Visual(buffer=T)
-    actr = ACTR(;goal=goal, visual_location=visual_location, visual=visual, parms...)
+    visual = Visual(buffer=T[])
+    return ACTRV(;goal=goal, visual_location=visual_location, visual=visual, parms...)
 end
 
 function run_trial!(ex; parms...)

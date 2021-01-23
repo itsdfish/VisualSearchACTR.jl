@@ -101,7 +101,7 @@ get_text(vo) = string(vo.features.shape.value)
 
 get_color(vo) = Colors.parse(Colorant, string(vo.features.color.value))
 
-get_min_max(actr::ACTR) = get_min_max(actr.visual_location.iconic_memory)
+get_min_max(actr::ACTRV) = get_min_max(actr.visual_location.iconic_memory)
 
 function get_min_max(iconic_memory)
     mn,mx = Inf,-Inf
