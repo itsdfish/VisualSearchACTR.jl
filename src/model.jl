@@ -10,18 +10,20 @@ function search!(actr, ex)
         ex.visible ? update_window!(actr, ex) : nothing
     end
     add_data!(ex)
+    push!(ex.fixations, ex.trial_fixations)
     return nothing
 end
 
 function _search!(actr, ex)
     # Finding object in abstract-location
     ex.trace ? print_trial(ex) : nothing
-    data = ex.current_trial
+    data = ex.trial_data
     cycle_time!(actr, ex)
     status = find_object!(actr, ex)
     if status == :error
         cycle_time!(actr, ex)
         motor_time!(actr, ex)
+        add_no_fixation!(ex, actr)
         ex.trace ? print_response(actr, "absent") : nothing
         add_response!(actr, data, :absent)
         return status
@@ -30,6 +32,7 @@ function _search!(actr, ex)
     cycle_time!(actr, ex)
     attend_time!(actr, ex)
     attend_object!(actr, ex)
+    add_fixation!(ex, actr)
     cycle_time!(actr, ex)
     status = check_object(actr, ex)
     if status == :present
@@ -85,8 +88,34 @@ gamma_parms(μ, σ) = (μ/σ)^2,σ^2/μ
 
 gamma_parms(μ) = gamma_parms(μ, μ/3)
 
+function add_fixation!(ex, actr)
+    goal = get_buffer(actr, :goal)
+    vision = get_buffer(actr, :visual)
+    visicon = actr.visual_location.visicon
+    attend_time = vision[1].attend_time 
+    slots = goal[1].slots
+    idx = findfirst(x->x.location == vision[1].location, visicon)
+    fixation = Fixation(; attend_time, color=slots.color, 
+        shape=slots.shape, idx, stop=false)
+    push!(ex.trial_fixations, fixation)
+    return nothing
+end
+
+function add_no_fixation!(ex, actr)
+    goal = get_buffer(actr, :goal)
+    vision = get_buffer(actr, :visual)
+    visicon = actr.visual_location.visicon
+    attend_time = actr.time
+    slots = goal[1].slots
+    idx = length(visicon) + 1
+    fixation = Fixation(; attend_time, color=slots.color, 
+        shape=slots.shape, idx, stop=true)
+    push!(ex.trial_fixations, fixation)
+    return nothing
+end
+
 function add_data!(ex)
-    push!(ex.data, ex.current_trial)
+    push!(ex.data, ex.trial_data)
     return nothing
 end
 

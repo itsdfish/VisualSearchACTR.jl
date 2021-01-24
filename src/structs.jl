@@ -102,6 +102,16 @@ function ACTRV(;declarative=Declarative(), imaginal=Imaginal(), goal = Goal(),
     ACTRV(declarative, imaginal, visual, visual_location, goal, parms′, time)
 end
 
+mutable struct Fixation
+	target_color::Symbol
+	target_shape::Symbol
+	attend_time::Float64
+	idx::Int
+	stop::Bool
+end
+
+Fixation(;color, shape, attend_time, idx, stop) = Fixation(color, shape, attend_time, idx, stop)
+
 mutable struct Data
 	target_present::Symbol
 	target_color::Symbol
@@ -113,7 +123,10 @@ end
 
 Data() = Data(fill(:_,5)..., 0.0)
 
+
 """
+** Experiment **
+
 * `array_width`: with of visual array in pixels
 * `n_cells`: number of cells in visual array grid
 * `n_trials`: number of trials in simulation
@@ -126,7 +139,9 @@ Data() = Data(fill(:_,5)..., 0.0)
 * `shapes`: tuple of shapes
 * `base_rate`: probability that target is present
 * `data`: Array of Data for all trials
-* `current_trial`: Data for current trial
+* `trial_data`: Data for current trial
+* `fixations`: Array of fixations for all trials
+* `trial_fixations`: fixations for current trial
 * `trace`: displays trace if true
 * `window`: GUI window
 * `canvas`: GUI canvas
@@ -147,7 +162,9 @@ mutable struct Experiment{T1,T2,F<:Function}
 	shapes::Vector{Symbol}
 	base_rate::Float64
 	data::Vector{Data}
-	current_trial::Data
+	trial_data::Data
+	fixations::Vector{Vector{Fixation}}
+	trial_fixations::Vector{Fixation}
 	trace::Bool
 	window::T1
 	canvas::T2
@@ -158,8 +175,8 @@ end
 
 function Experiment(;array_width=428., object_width=32.0, n_cells=8, n_trials=20,
 	n_color_distractors=20, set_size=40, n_shape_distractors=20, shapes=[:p,:q], colors=[:red,:blue],
-	base_rate=.50, data=Data[], current_trial=Data(), trace=false, window=nothing, canvas=nothing,
-	visible=false, speed=1.0, populate_visicon=conjunctive_ratio)
+	base_rate=.50, data=Data[], trial_data=Data(), fixations=Vector{Vector{Fixation}}(), trial_fixations=Fixation[],
+	trace=false, window=nothing, canvas=nothing, visible=false, speed=1.0, populate_visicon=conjunctive_ratio)
 	cell_width = array_width/n_cells
 	@argcheck  cell_width > object_width
 	@argcheck n_color_distractors + n_shape_distractors + 1 <= n_cells^2
@@ -167,7 +184,7 @@ function Experiment(;array_width=428., object_width=32.0, n_cells=8, n_trials=20
     visible ? Gtk.showall(window) : nothing
 	return Experiment(array_width, n_cells, n_trials, cell_width, object_width,
 		n_color_distractors, n_shape_distractors, set_size, colors, shapes, base_rate,
-		data, current_trial, trace, window, canvas, visible, speed, populate_visicon)
+		data, trial_data, fixations, trial_fixations, trace, window, canvas, visible, speed, populate_visicon)
 end
 
 function setup_window(array_width)

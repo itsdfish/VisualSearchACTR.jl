@@ -1,3 +1,10 @@
+function run_condition!(ex, stimuli; parms...)
+    for trial in 1:ex.n_trials
+        run_trial!(ex, stimuli[trial]...; parms...)
+    end
+    return nothing
+end
+
 function run_condition!(ex; parms...)
     for trial in 1:ex.n_trials
         run_trial!(ex; parms...)
@@ -5,9 +12,29 @@ function run_condition!(ex; parms...)
     return nothing
 end
 
-function initialize_model(ex; parms...)
+function run_trial!(ex; parms...)
+    stimuli = generate_stimuli(ex)
+    return run_trial!(ex, stimuli...; parms...)
+end
+
+function run_trial!(ex, target, present, visual_objects; parms...)
+    ex.trial_fixations = Fixation[]
+    actr = initialize_model(ex, target, visual_objects; parms...)
+    compute_angular_size!(actr)
+    orient!(actr, ex)
+    ex.visible ? draw_cross!(actr, ex) : nothing
+    ex.trace ? println("\n", get_time(actr), " start search sequence") : nothing
+    search!(actr, ex)
+    return actr
+end
+
+function generate_stimuli(ex)
     target,present = initialize_trial!(ex)
     visual_objects = ex.populate_visicon(ex, target..., present)
+    return target, present, visual_objects
+end
+
+function initialize_model(ex, target, visual_objects; parms...)
     T = eltype(visual_objects)
     visual_location = VisualLocation(buffer=T[])
     visual_location.visicon = visual_objects
@@ -18,24 +45,15 @@ function initialize_model(ex; parms...)
     return ACTRV(;goal=goal, visual_location=visual_location, visual=visual, parms...)
 end
 
-function run_trial!(ex; parms...)
-    actr = initialize_model(ex; parms...)
-    compute_angular_size!(actr)
-    orient!(actr, ex)
-    ex.visible ? draw_cross!(actr, ex) : nothing
-    ex.trace ? println("\n", get_time(actr), " start search sequence") : nothing
-    search!(actr, ex)
-    return actr
-end
-
 function initialize_trial!(ex::Experiment)
     target = sample_target(ex)
     present = rand() < ex.base_rate ? :present : :absent
+    ex.trial_fixations = Fixation[]
     data = Data()
     data.target_present = present
     data.target_shape = target.shape
     data.target_color = target.color
-    ex.current_trial = data
+    ex.trial_data = data
     return target,present
 end
 

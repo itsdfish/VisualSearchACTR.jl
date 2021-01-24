@@ -1,5 +1,5 @@
 function print_trial(ex)
-    data = ex.current_trial
+    data = ex.trial_data
     println("Trial info: ")
     println("\t  target.................... ", data.target_present)
     println("\t  stimulus.................. ", Crayon(foreground=data.target_color), data.target_shape)
