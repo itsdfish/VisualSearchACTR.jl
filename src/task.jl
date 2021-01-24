@@ -18,7 +18,6 @@ function run_trial!(ex; parms...)
 end
 
 function run_trial!(ex, target, present, visual_objects; parms...)
-    println("hi")
     ex.trial_fixations = Fixation[]
     actr = initialize_model(ex, target, visual_objects; parms...)
     compute_angular_size!(actr)
