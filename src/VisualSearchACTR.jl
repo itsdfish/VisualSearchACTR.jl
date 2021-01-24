@@ -1,4 +1,4 @@
-module PAAV
+module VisualSearchACTR
     using Reexport, Distributions, StatsBase, ArgCheck, Gtk, Graphics, Cairo, Colors, ColorSchemes
     using Crayons, ACTRModels
     @reexport using Random, ACTRModels

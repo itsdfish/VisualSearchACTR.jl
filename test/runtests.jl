@@ -1,7 +1,7 @@
 using SafeTestsets
 
 @safetestset "Testing Finsts" begin
-    using  PAAV, Test
+    using  VisualSearchACTR, Test
     ex = Experiment()
     target,present = initialize_trial!(ex)
     visual_objects = ex.populate_visicon(ex, target..., present)
@@ -21,7 +21,7 @@ using SafeTestsets
     iconic_memory[3].attend_time = 1.1
     iconic_memory[4].attend_time = 1.1
     iconic_memory[6].attend_time = 2.0
-    PAAV.update_finst!(actr)
+    VisualSearchACTR.update_finst!(actr)
     @test iconic_memory[6].attend_time == 2.0
     @test iconic_memory[6].attended
     @test sum(x->x.attended, iconic_memory) == actr.parms.n_finst
@@ -29,7 +29,7 @@ using SafeTestsets
 end
 
 @safetestset "Testing Iconic Decay" begin
-    using  PAAV, Test
+    using  VisualSearchACTR, Test
     ex = Experiment()
     target,present = initialize_trial!(ex)
     visual_objects = ex.populate_visicon(ex, target..., present)
@@ -48,19 +48,19 @@ end
     map(x->x.features.color.fixation_time=5.0, visible_objects[1:2])
     map(x->x.features.shape.visible=true, visible_objects[3:end])
     map(x->x.features.shape.fixation_time=6.0, visible_objects[3:end])
-    map(x->PAAV.object_visibility!(x), iconic_memory)
+    map(x->VisualSearchACTR.object_visibility!(x), iconic_memory)
     @test sum(x->x.visible, iconic_memory) == 5
-    PAAV.update_decay!(actr)
-    map(x->PAAV.object_visibility!(x), iconic_memory)
+    VisualSearchACTR.update_decay!(actr)
+    map(x->VisualSearchACTR.object_visibility!(x), iconic_memory)
     @test sum(x->x.visible, iconic_memory) == 5
     actr.time = 6.5
-    PAAV.update_decay!(actr)
-    map(x->PAAV.object_visibility!(x), iconic_memory)
+    VisualSearchACTR.update_decay!(actr)
+    map(x->VisualSearchACTR.object_visibility!(x), iconic_memory)
     @test sum(x->x.visible, iconic_memory) == 3
 end
 
 @safetestset "Testing Activation" begin
-    using  PAAV, Test
+    using  VisualSearchACTR, Test
 
     vals = [(color = :gray, shape = :p, x = 338, y =515),
             (color = :black, shape = :q, x = 351 , y = 193),
@@ -84,39 +84,39 @@ end
     iconic_memory = get_iconic_memory(actr)
 
     # model = Model(;target=target, iconic_memory=visicon, noise=0.0)
-    PAAV.compute_angular_size!(actr)
+    VisualSearchACTR.compute_angular_size!(actr)
     actr.visual.focus = [324.0,324.0]
-    PAAV.update_decay!(actr)
-    PAAV.update_finst!(actr)
-    PAAV.update_visibility!(actr)
-    PAAV.compute_activations!(actr)
+    VisualSearchACTR.update_decay!(actr)
+    VisualSearchACTR.update_finst!(actr)
+    VisualSearchACTR.update_visibility!(actr)
+    VisualSearchACTR.compute_activations!(actr)
 
     correct_top_down = [2,0,1,1]
     @test all(x->x[2].topdown_activation == x[1], zip(correct_top_down, iconic_memory))
 
     vo1 = iconic_memory[1]
     vo2 = iconic_memory[2]
-    distance = PAAV.compute_distance(vo1, vo2)
-    bottomup_activation1 = PAAV.bottomup_activation(vo1.features, vo2.features, distance)
+    distance = VisualSearchACTR.compute_distance(vo1, vo2)
+    bottomup_activation1 = VisualSearchACTR.bottomup_activation(vo1.features, vo2.features, distance)
     @test bottomup_activation1 == 1/sqrt(distance)*2
 
     vo1 = iconic_memory[1]
     vo3 = iconic_memory[3]
-    distance = PAAV.compute_distance(vo1, vo3)
-    bottomup_activation2 = PAAV.bottomup_activation(vo1.features, vo3.features, distance)
+    distance = VisualSearchACTR.compute_distance(vo1, vo3)
+    bottomup_activation2 = VisualSearchACTR.bottomup_activation(vo1.features, vo3.features, distance)
     @test bottomup_activation2 == 1/sqrt(distance)
 
     vo1 = iconic_memory[1]
     vo4 = iconic_memory[4]
-    distance = PAAV.compute_distance(vo1, vo4)
-    bottomup_activation3 = PAAV.bottomup_activation(vo1.features, vo4.features, distance)
+    distance = VisualSearchACTR.compute_distance(vo1, vo4)
+    bottomup_activation3 = VisualSearchACTR.bottomup_activation(vo1.features, vo4.features, distance)
     @test bottomup_activation3 == 1/sqrt(distance)
 
     @test vo1.bottomup_activation == (bottomup_activation1 + bottomup_activation2 + bottomup_activation3)
 end
 
 @safetestset "Testing Feature Search" begin
-    using PAAV, Test, DataFrames, GLM, Statistics
+    using VisualSearchACTR, Test, DataFrames, GLM, Statistics
     include("simulation.jl")
     Random.seed!(95025181)
     set_sizes = [1,2,5,10,20,30]
@@ -135,7 +135,7 @@ end
 end
 
 @safetestset "Testing Conjunctive Search" begin
-    using PAAV, Test, DataFrames, GLM, Statistics
+    using VisualSearchACTR, Test, DataFrames, GLM, Statistics
     include("simulation.jl")
     Random.seed!(52484)
     set_sizes = [1,2,5,10,20,30]
@@ -154,8 +154,8 @@ end
 end
 
 @safetestset "Gamma Parms" begin
-    using PAAV, Test, Distributions
-    import PAAV: gamma_parms
+    using VisualSearchACTR, Test, Distributions
+    import VisualSearchACTR: gamma_parms
 
     θ = gamma_parms(3, 2)
     @test mean(Gamma(θ...)) ≈ 3 rtol = .0005
@@ -167,7 +167,7 @@ end
 end
 
 @safetestset "Run model" begin
-    using PAAV, Test
+    using VisualSearchACTR, Test
     experiment = Experiment(set_size=10,  n_trials=2,
         trace=true, speed =.5)
     run_condition!(experiment)

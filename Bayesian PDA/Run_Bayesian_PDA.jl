@@ -1,7 +1,7 @@
 cd(@__DIR__)
 using Pkg
 Pkg.activate("..")
-using Revise, DifferentialEvolutionMCMC, PAAV, Random
+using Revise, DifferentialEvolutionMCMC, VisiualSearch, Random
 include("KDE.jl")
 
 Random.seed!(50225)
