@@ -54,8 +54,11 @@ function motor_time!(actr, ex)
  end
 
 function cycle_time!(actr, ex)
-    θ = gamma_parms(.05)
-    tΔ = rand(Gamma(θ...))
+    tΔ = .05
+    if actr.parms.rnd_time 
+        θ = gamma_parms(.05)
+        tΔ = rand(Gamma(θ...))
+    end
     actr.time += tΔ
     ex.visible ? sleep(tΔ/ex.speed) : nothing
     return nothing
@@ -80,8 +83,11 @@ function saccade_time(actr, vo)
 end
 
 function visual_encoding(actr)
-    θ = gamma_parms(.085)
-    return rand(Gamma(θ...))
+    if actr.parms.rnd_time 
+        θ = gamma_parms(.085)
+        return rand(Gamma(θ...))
+    end
+    return .085
 end
 
 gamma_parms(μ, σ) = (μ/σ)^2,σ^2/μ
@@ -131,19 +137,22 @@ function relevant_object(actr, vo)
 end
 
 function find_object!(actr, ex)
-    visible_objects = filter(x->relevant_object(actr, x), get_iconic_memory(actr))
+    @unpack iconic_memory,visicon = actr.visual_location
+    visible_objects = filter(x->relevant_object(actr, x), iconic_memory)
     if isempty(visible_objects)
         ex.trace ? print_abstract_location(actr, "error locating object") : nothing
         return :error
     end
-    max_vo = max_activation(visible_objects)
+    p = fixation_probs(actr, visicon, visible_objects)
+    idx = sample(1:length(p), Weights(p))
     # act = map(x->x.bottomup_activation, visible_objects)
     # println("mean ", mean(act), " sd: ", std(act), " minimum: ", minimum(act), " maximum: ", maximum(act))
-    if terminate(actr, max_vo)
+    if idx == length(p)
         ex.trace ? print_abstract_location(actr, "termination threshold exceeded") : nothing
         return :error
     end
-    actr.visual_location.buffer = max_vo
+    max_vo = visible_objects[idx]
+    actr.visual_location.buffer = [max_vo]
     ex.trace ? print_abstract_location(actr, "object found") : nothing
     return :searching
 end
@@ -243,7 +252,7 @@ function compute_activations!(actr)
     topdown_activations!(iconic_memory, actr.goal.buffer[1])
     bottomup_activations!(iconic_memory)
     weighted_activations!(actr, iconic_memory)
-    add_noise!(actr, iconic_memory)
+    actr.parms.noise ? add_noise!(actr, iconic_memory) : nothing
     return nothing
 end
 
@@ -404,6 +413,22 @@ end
 function orient!(actr, ex)
     w = ex.array_width/2
     actr.visual.focus = fill(w, 2)
+end
+
+function fixation_prob(actr, visicon, visible_objects, fixation)
+    @unpack stop,idx = fixation
+    act = map(x->x.activation, visible_objects)
+    push!(act, actr.parms.τₐ)
+    σ = actr.parms.σ*sqrt(2)
+    vo_act = stop ? act[end] : visicon[idx].activation
+    return exp(vo_act/σ)/sum(exp.(act/σ))
+end
+
+function fixation_probs(actr, visicon, visible_objects)
+    act = map(x->x.activation, visible_objects)
+    push!(act, actr.parms.τₐ)
+    σ = actr.parms.σ*sqrt(2)
+    return exp.(act/σ)/sum(exp.(act/σ))
 end
 
 # visual_encoding(model) = visual_encoding(model, model.abstract_location[1])

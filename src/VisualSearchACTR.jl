@@ -9,6 +9,7 @@ module VisualSearchACTR
     export compute_angular_size, update_visibility!, run_trial!, run_condition!
     export orient!, compute_activations!, update_decay!, draw_object!
     export conjunctive_ratio, conjunctive_set, feature_set, generate_stimuli
+    export fixation_probs, fixation_prob
     include("structs.jl")
     include("model.jl")
     include("task.jl")

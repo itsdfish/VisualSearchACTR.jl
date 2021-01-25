@@ -80,7 +80,7 @@ end
     target_chunk = Chunk(;target...)
     goal = Goal(buffer=target_chunk)
     visual = Visual(buffer=T)
-    actr = ACTRV(;T=Parm, goal=goal, visual_location=visual_location, visual=visual, noise=0.0)
+    actr = ACTRV(;T=Parm, goal=goal, visual_location=visual_location, visual=visual, σ=0.0)
     iconic_memory = get_iconic_memory(actr)
 
     # model = Model(;target=target, iconic_memory=visicon, noise=0.0)

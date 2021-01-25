@@ -48,7 +48,9 @@ mutable struct Parm{A,T} <: AbstractParms
     viewing_distance::Float64
 	topdown_weight::Float64
 	bottomup_weight::Float64
-	noise::Float64
+	noise::Bool
+	rnd_time::Bool
+	σ::Float64
 	persistence::Float64
 	acuity::A
 	n_finst::Int64
@@ -60,12 +62,12 @@ mutable struct Parm{A,T} <: AbstractParms
 	misc::T
 end
 
-function Parm(;viewing_distance=30.0, topdown_weight=.66, bottomup_weight=1.1, noise=.2*π/sqrt(3), 
-	persistence=4.0, a_color=.104, b_color=.85, a_shape=.142, b_shape=.96, n_finst=4, finst_span=3.0, 
-	β₀exe=.02, Δexe=.002, τₐ=0.0, Δτ=0.39, args...)
+function Parm(;viewing_distance=30.0, topdown_weight=.66, bottomup_weight=1.1,noise=false, rnd_time=false, 
+	σ=.2*π/sqrt(3), persistence=4.0, a_color=.104, b_color=.85, a_shape=.142, b_shape=.96, n_finst=4, 
+	finst_span=3.0, β₀exe=.02, Δexe=.002, τₐ=0.0, Δτ=0.39, args...)
 	acuity = (color = (a=a_color,b=b_color), shape = (a=a_shape,b=b_shape))
 	return Parm(viewing_distance, topdown_weight, bottomup_weight, 
-		noise, persistence, acuity, n_finst, finst_span, β₀exe, Δexe, τₐ, Δτ, args.data)
+		noise, rnd_time, σ, persistence, acuity, n_finst, finst_span, β₀exe, Δexe, τₐ, Δτ, args.data)
 end
 
 """
