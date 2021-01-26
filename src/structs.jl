@@ -11,13 +11,13 @@ function populate_features(features, values)
 	return NamedTuple{features}(vals)
 end
 
-mutable struct VisualObject{F}
+mutable struct VisualObject{F,T}
 	features::F
     attended::Bool
     visible::Bool
 	width::Float64
 	angular_size::Float64
-	activation::Float64
+	activation::T
 	bottomup_activation::Float64
 	topdown_activation::Float64
 	location::Vector{Float64}
@@ -26,8 +26,8 @@ mutable struct VisualObject{F}
 end
 
 function VisualObject(;features, attended=false, visible=false, width=0.0, angular_size=0.0, location=[0.0,0.0],
-		attend_time=0.0, target=false)
-	return VisualObject(features, attended, visible, width, 0.0, 0.0, 0.0, 0.0, location, attend_time,
+		attend_time=0.0, target=false, activation=0.0)
+	return VisualObject(features, attended, visible, width, 0.0, activation, 0.0, 0.0, location, attend_time,
 		target)
 end
 
@@ -44,9 +44,9 @@ end
 * `τₐ`: activation threshold for terminating search
 *  `Δτ`: activation threshold increment following a fixation to a distractor
 """
-mutable struct Parm{A,T} <: AbstractParms
+mutable struct Parm{A,T,T1} <: AbstractParms
     viewing_distance::Float64
-	topdown_weight::Float64
+	topdown_weight::T1
 	bottomup_weight::Float64
 	noise::Bool
 	rnd_time::Bool
