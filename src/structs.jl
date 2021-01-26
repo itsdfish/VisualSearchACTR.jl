@@ -62,7 +62,7 @@ mutable struct Parm{A,T,T1} <: AbstractParms
 	misc::T
 end
 
-function Parm(;viewing_distance=30.0, topdown_weight=.66, bottomup_weight=1.1,noise=false, rnd_time=false, 
+function Parm(;viewing_distance=30.0, topdown_weight=.66, bottomup_weight=1.1, noise=false, rnd_time=false, 
 	σ=.2*π/sqrt(3), persistence=4.0, a_color=.104, b_color=.85, a_shape=.142, b_shape=.96, n_finst=4, 
 	finst_span=3.0, β₀exe=.02, Δexe=.002, τₐ=0.0, Δτ=0.39, args...)
 	acuity = (color = (a=a_color,b=b_color), shape = (a=a_shape,b=b_shape))

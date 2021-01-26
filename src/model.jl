@@ -137,6 +137,16 @@ function relevant_object(actr, vo)
 end
 
 function find_object!(actr, ex)
+    v = :_
+    if actr.parms.noise
+        v = find_object2!(actr, ex)
+    else
+        v = find_object1!(actr, ex)
+    end
+    return v
+end
+
+function find_object1!(actr, ex)
     @unpack iconic_memory,visicon = actr.visual_location
     visible_objects = filter(x->relevant_object(actr, x), iconic_memory)
     if isempty(visible_objects)
@@ -145,14 +155,28 @@ function find_object!(actr, ex)
     end
     p = fixation_probs(actr, visicon, visible_objects)
     idx = sample(1:length(p), Weights(p))
-    # act = map(x->x.bottomup_activation, visible_objects)
-    # println("mean ", mean(act), " sd: ", std(act), " minimum: ", minimum(act), " maximum: ", maximum(act))
     if idx == length(p)
         ex.trace ? print_abstract_location(actr, "termination threshold exceeded") : nothing
         return :error
     end
     max_vo = visible_objects[idx]
     actr.visual_location.buffer = [max_vo]
+    ex.trace ? print_abstract_location(actr, "object found") : nothing
+    return :searching
+end
+
+function find_object2!(actr, ex)
+    visible_objects = filter(x->relevant_object(actr, x), get_iconic_memory(actr))
+    if isempty(visible_objects)
+        ex.trace ? print_abstract_location(actr, "error locating object") : nothing
+        return :error
+    end
+    max_vo = max_activation(visible_objects)
+    if terminate(actr, max_vo)
+        ex.trace ? print_abstract_location(actr, "termination threshold exceeded") : nothing
+        return :error
+    end
+    actr.visual_location.buffer = max_vo
     ex.trace ? print_abstract_location(actr, "object found") : nothing
     return :searching
 end
@@ -326,7 +350,7 @@ function topdown_activation!(object, target)
     return nothing
 end
 
-add_noise(actr) = rand(Normal(0, actr.parms.noise))
+add_noise(actr) = rand(Normal(0, actr.parms.σ))
 
 add_noise!(actr, vo::VisualObject) = vo.activation += add_noise(actr)
 
