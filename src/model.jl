@@ -1,47 +1,67 @@
 function search!(actr, ex)
     status = :searching
+    # search until target found or termination threshold met
     while status == :searching
+        # update decay values of objects in iconic memory 
         update_decay!(actr)
+        # update the finst values for return of inhabition
         update_finst!(actr)
+        # update which items are in iconic memory based on what is currently visible 
         update_visibility!(actr)
+        # update the activations 
         compute_activations!(actr)
         ex.visible ? update_window!(actr, ex) : nothing
+        # perform search sequence
         status = _search!(actr, ex)
         ex.visible ? update_window!(actr, ex) : nothing
     end
+    # add data for trial 
     add_data!(ex)
+    # add fixations for trial 
     push!(ex.fixations, ex.trial_fixations)
     return nothing
 end
 
 function _search!(actr, ex)
-    # Finding object in abstract-location
     ex.trace ? print_trial(ex) : nothing
     data = ex.trial_data
+    # production cycle
     cycle_time!(actr, ex)
+    # select visual object with highest activation
     status = find_object!(actr, ex)
     if status == :error
+        # if not objects are found, add respond time
         cycle_time!(actr, ex)
         motor_time!(actr, ex)
+        # add fixation data
         add_no_fixation!(ex, actr)
         ex.trace ? print_response(actr, "absent") : nothing
+        # add response to data
         add_response!(actr, data, :absent)
         return status
     end
     # Attending object in abstract-location
+    # add cycle time
     cycle_time!(actr, ex)
+    # add attend time
     attend_time!(actr, ex)
+    # place object in visual buffer and update attend time 
     attend_object!(actr, ex)
+    # add fixation to fixation data
     add_fixation!(ex, actr)
+    # cycle time before response
     cycle_time!(actr, ex)
+    # check if current object matches target
     status = check_object(actr, ex)
     if status == :present
+        # if matches, respond present and collect data
         cycle_time!(actr, ex)
         motor_time!(actr, ex)
         ex.trace ? print_response(actr, "present") : nothing
         add_response!(actr, data, status)
         return status
     end
+    # if does not match, return "searching" and continue
     return status
 end
 

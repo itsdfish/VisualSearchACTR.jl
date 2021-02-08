@@ -191,7 +191,7 @@ end
 
 function setup_window(array_width)
 	canvas = @GtkCanvas()
-    window = GtkWindow(canvas, "PAAV", array_width, array_width)
+    window = GtkWindow(canvas, "ACT-R", array_width, array_width)
     Gtk.visible(window, true)
     @guarded draw(canvas) do widget
         ctx = getgc(canvas)
