@@ -11,7 +11,7 @@ function populate_features(features, values)
 	return NamedTuple{features}(vals)
 end
 
-mutable struct VisualObject{F,T}
+mutable struct VisualObject{F,T} <:AbstractVisualObject
 	features::F
     attended::Bool
     visible::Bool

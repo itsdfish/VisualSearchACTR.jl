@@ -36,8 +36,7 @@ end
 
 function initialize_model(ex, target, visual_objects; parms...)
     T = eltype(visual_objects)
-    visual_location = VisualLocation(buffer=T[])
-    visual_location.visicon = visual_objects
+    visual_location = VisualLocation(buffer=T[], visicon=visual_objects)
     visual_location.iconic_memory = visual_objects
     target_chunk = Chunk(;target...)
     goal = Goal(buffer=target_chunk)
