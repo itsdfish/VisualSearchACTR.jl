@@ -6,7 +6,7 @@ include("KDE.jl")
 
 Random.seed!(50225)
 
-function loglike(topdown_weight, conditions)
+function loglike(conditions, topdown_weight)
     return compute_LL(conditions; topdown_weight=topdown_weight)
 end
 
@@ -19,9 +19,9 @@ bounds = ((0.0,Inf),)
 set_sizes = [5]
 data = generate_data(;set_sizes=set_sizes, n_trials=100)
 
-model = DEModel(;priors=priors, model=loglike, data)
+model = DEModel(;priors, model=loglike, data)
 
-de = DE(bounds=bounds, burnin=1000, priors=priors)
+de = DE(;bounds, burnin=1000, priors)
 n_iter = 2000
 chains = sample(model, de, MCMCThreads(), n_iter, progress=true)
 println(chains)
