@@ -189,15 +189,7 @@ function Experiment(;array_width=428., object_width=32.0, n_cells=8, n_trials=20
 		data, trial_data, fixations, trial_fixations, trace, window, canvas, visible, speed, populate_visicon)
 end
 
-function setup_window(array_width)
-	canvas = @GtkCanvas()
-    window = GtkWindow(canvas, "ACT-R", array_width, array_width)
-    Gtk.visible(window, true)
-    @guarded draw(canvas) do widget
-        ctx = getgc(canvas)
-        rectangle(ctx, 0.0, 0.0, array_width, array_width)
-        set_source_rgb(ctx, .8, .8, .8)
-        fill(ctx)
-    end
-	return canvas,window
+function import_gui()
+    path = @__DIR__
+    include(path*"/draw.jl")
 end

@@ -1,5 +1,5 @@
 module VisualSearchACTR
-    using Reexport, Distributions, StatsBase, ArgCheck, Gtk, Graphics, Cairo, Colors, ColorSchemes
+    using Reexport, Distributions, StatsBase, ArgCheck
     using Crayons, ACTRModels
     @reexport using Random, ACTRModels
     import ACTRModels: AbstractParms, AbstractACTR
@@ -9,10 +9,9 @@ module VisualSearchACTR
     export compute_angular_size, update_visibility!, run_trial!, run_condition!
     export orient!, compute_activations!, update_decay!, draw_object!
     export conjunctive_ratio, conjunctive_set, feature_set, generate_stimuli
-    export fixation_probs, fixation_prob
+    export fixation_probs, fixation_prob, import_gui
     include("structs.jl")
     include("model.jl")
     include("task.jl")
     include("trace.jl")
-    include("draw.jl")
 end

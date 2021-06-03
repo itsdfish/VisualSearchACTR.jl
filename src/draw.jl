@@ -1,3 +1,5 @@
+using Gtk, Graphics, Cairo, Colors, ColorSchemes
+
 function update_window!(actr, ex)
     refresh!(ex)
     draw_target!(actr, ex)
@@ -115,4 +117,17 @@ end
 function compute_heat(vo, lb, ub)
     lb == ub ? (return 1.0) : nothing
     return (vo.activation-lb)/(ub-lb)
+end
+
+function setup_window(array_width)
+	canvas = @GtkCanvas()
+    window = GtkWindow(canvas, "ACT-R", array_width, array_width)
+    Gtk.visible(window, true)
+    @guarded draw(canvas) do widget
+        ctx = getgc(canvas)
+        rectangle(ctx, 0.0, 0.0, array_width, array_width)
+        set_source_rgb(ctx, .8, .8, .8)
+        fill(ctx)
+    end
+	return canvas,window
 end
