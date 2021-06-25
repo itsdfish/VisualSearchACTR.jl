@@ -7,12 +7,12 @@ using SafeTestsets
     visual_objects = ex.populate_visicon(ex, target..., present)
     T = typeof(visual_objects)
     visual_location = VisualLocation(buffer=T)
-    visual_location.visicon = visual_objects
+    visicon = visual_objects
     visual_location.iconic_memory = visual_objects
     target_chunk = Chunk(;target...)
     goal = Goal(buffer=target_chunk)
     visual = Visual(buffer=T)
-    actr = ACTRV(;T=Parm, goal=goal, visual_location=visual_location, visual=visual)
+    actr = ACTRV(;T=Parm, goal, visual_location, visual, visicon)
     iconic_memory = get_iconic_memory(actr)
     map(x->x.attended=true, iconic_memory)
     map(x->x.attend_time = 0.0, iconic_memory)
@@ -35,13 +35,13 @@ end
     visual_objects = ex.populate_visicon(ex, target..., present)
     T = typeof(visual_objects)
     visual_location = VisualLocation(buffer=T)
-    visual_location.visicon = visual_objects
+    visicon = visual_objects
     visual_location.iconic_memory = visual_objects
     target_chunk = Chunk(;target...)
     goal = Goal(buffer=target_chunk)
     visual = Visual(buffer=T)
-    actr = ACTRV(;T=Parm, goal=goal, visual_location=visual_location, visual=visual, persistence=1.0,
-        time=4.0)
+    actr = ACTRV(;T=Parm, goal, visual_location, visual, persistence=1.0,
+        visicon, time=4.0)
     iconic_memory = get_iconic_memory(actr)
     visible_objects = iconic_memory[1:5]
     map(x->x.features.color.visible=true, visible_objects[1:2])
@@ -75,12 +75,12 @@ end
 
     T = typeof(visual_objects)
     visual_location = VisualLocation(buffer=T)
-    visual_location.visicon = visual_objects
+    visicon = visual_objects
     visual_location.iconic_memory = visual_objects
     target_chunk = Chunk(;target...)
     goal = Goal(buffer=target_chunk)
     visual = Visual(buffer=T)
-    actr = ACTRV(;T=Parm, goal=goal, visual_location=visual_location, visual=visual, σ=0.0)
+    actr = ACTRV(;T=Parm, goal, visual_location, visual, visicon, σ=0.0)
     iconic_memory = get_iconic_memory(actr)
 
     # model = Model(;target=target, iconic_memory=visicon, noise=0.0)

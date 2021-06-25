@@ -88,20 +88,21 @@ ACTRV(;declarative=Declarative(), imaginal=Imaginal(), goal = Goal(),
     scheduler=nothing, visual=nothing, visual_location=nothing, time=0.0, parms...) 
 ````
 """
-mutable struct ACTRV{T1,T2,T3,T4,T5,T6,T7} <: AbstractACTR
-    declarative::T1
-    imaginal::T2
-    visual::T3
-    visual_location::T4
-    goal::T5
-    parms::T6
-    time::T7
+@concrete mutable struct ACTRV <: AbstractACTR
+    declarative
+    imaginal
+    visual
+    visual_location
+    goal
+	visicon
+    parms
+    time
 end
 
 function ACTRV(;declarative=Declarative(), imaginal=Imaginal(), goal = Goal(), 
-    scheduler=nothing, visual=nothing, visual_location=nothing, time=0.0, parms...) 
+    scheduler=nothing, visual=nothing, visual_location=nothing, visicon=nothing, time=0.0, parms...) 
     parms′ = Parm(;parms...)
-    ACTRV(declarative, imaginal, visual, visual_location, goal, parms′, time)
+    ACTRV(declarative, imaginal, visual, visual_location, goal, visicon, parms′, time)
 end
 
 mutable struct Fixation

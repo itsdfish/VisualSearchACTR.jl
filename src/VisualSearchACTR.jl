@@ -1,6 +1,6 @@
 module VisualSearchACTR
     using Reexport, Distributions, StatsBase, ArgCheck
-    using Crayons, ACTRModels
+    using Crayons, ACTRModels, ConcreteStructs
     @reexport using Random, ACTRModels
     import ACTRModels: AbstractParms, AbstractACTR
     export ACTRV, Experiment, VisualObject, Feature, Data, Fixation, Parm

@@ -36,12 +36,13 @@ end
 
 function initialize_model(ex, target, visual_objects; parms...)
     T = eltype(visual_objects)
-    visual_location = VisualLocation(buffer=T[], visicon=visual_objects)
+    visicon=visual_objects
+    visual_location = VisualLocation(buffer=T[])
     visual_location.iconic_memory = visual_objects
     target_chunk = Chunk(;target...)
     goal = Goal(buffer=target_chunk)
     visual = Visual(buffer=T[])
-    return ACTRV(;goal=goal, visual_location=visual_location, visual=visual, parms...)
+    return ACTRV(;goal, visual_location, visual, visicon, parms...)
 end
 
 function initialize_trial!(ex::Experiment)

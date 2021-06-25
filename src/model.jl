@@ -117,7 +117,7 @@ gamma_parms(μ) = gamma_parms(μ, μ/3)
 function add_fixation!(ex, actr)
     goal = get_buffer(actr, :goal)
     vision = get_buffer(actr, :visual)
-    visicon = actr.visual_location.visicon
+    visicon = actr.visicon
     attend_time = vision[1].attend_time 
     slots = goal[1].slots
     idx = findfirst(x->x.location == vision[1].location, visicon)
@@ -130,7 +130,7 @@ end
 function add_no_fixation!(ex, actr)
     goal = get_buffer(actr, :goal)
     vision = get_buffer(actr, :visual)
-    visicon = actr.visual_location.visicon
+    visicon = actr.visicon
     attend_time = actr.time
     slots = goal[1].slots
     idx = length(visicon) + 1
@@ -167,13 +167,13 @@ function find_object!(actr, ex)
 end
 
 function find_object1!(actr, ex)
-    @unpack iconic_memory,visicon = actr.visual_location
+    @unpack iconic_memory = actr.visual_location
     visible_objects = filter(x->relevant_object(actr, x), iconic_memory)
     if isempty(visible_objects)
         ex.trace ? print_abstract_location(actr, "error locating object") : nothing
         return :error
     end
-    p = fixation_probs(actr, visicon, visible_objects)
+    p = fixation_probs(actr, actr.visicon, visible_objects)
     idx = sample(1:length(p), Weights(p))
     if idx == length(p)
         ex.trace ? print_abstract_location(actr, "termination threshold exceeded") : nothing
@@ -291,8 +291,8 @@ function update_n_finst!(actr, vos)
 end
 
 function compute_activations!(actr)
-    @unpack iconic_memory,visicon = actr.visual_location
-    iconic_memory = filter(x->x.visible, visicon)
+    @unpack iconic_memory = actr.visual_location
+    iconic_memory = filter(x->x.visible, actr.visicon)
     topdown_activations!(iconic_memory, actr.goal.buffer[1])
     bottomup_activations!(iconic_memory)
     weighted_activations!(actr, iconic_memory)
@@ -433,19 +433,19 @@ end
 
 function compute_angular_size!(actr, vo)
     ppi = 72 # pixels per inch
-    distance = actr.parms.viewing_distance*ppi
+    distance = actr.parms.viewing_distance * ppi
     vo.angular_size = compute_angular_size(distance, vo.width)
 end
 
 function compute_angular_size(distance, width)
-    radians = 2*atan(width/(2*distance))
+    radians = 2 * atan(width / (2 * distance))
     return rad2deg(radians)
 end
 
-rad2deg(radians) = radians*180/pi
+rad2deg(radians) = radians * 180 / pi
 
 function compute_acuity_threshold(parms, angular_distance)
-    return parms.a*angular_distance^2 - parms.b*angular_distance
+    return parms.a * angular_distance^2 - parms.b * angular_distance
 end
 
 function pixels_to_degrees(actr, pixels)
@@ -455,7 +455,7 @@ function pixels_to_degrees(actr, pixels)
 end
 
 function orient!(actr, ex)
-    w = ex.array_width/2
+    w = ex.array_width / 2
     actr.visual.focus = fill(w, 2)
 end
 
@@ -471,8 +471,8 @@ end
 function fixation_probs(actr, visicon, visible_objects)
     act = map(x->x.activation, visible_objects)
     push!(act, actr.parms.τₐ)
-    σ = actr.parms.σ*sqrt(2)
-    return exp.(act/σ)/sum(exp.(act/σ))
+    σ = actr.parms.σ * sqrt(2)
+    return exp.(act / σ) / sum(exp.(act / σ))
 end
 
 # visual_encoding(model) = visual_encoding(model, model.abstract_location[1])
