@@ -1,7 +1,7 @@
 name = "VisualSearchACTR"
 uuid = "ad0872d7-b137-4624-87af-d763ac8dea1a"
 authors = [""]
-version = "0.2.0"
+version = "0.2.1"
 
 [deps]
 ACTRModels = "c095b0ea-a6ca-5cbd-afed-dbab2e976880"
