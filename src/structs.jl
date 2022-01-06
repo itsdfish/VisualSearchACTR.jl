@@ -67,7 +67,7 @@ function Parm(;viewing_distance=30.0, topdown_weight=.66, bottomup_weight=1.1, n
 	finst_span=3.0, β₀exe=.02, Δexe=.002, τₐ=0.0, Δτ=0.39, args...)
 	acuity = (color = (a=a_color,b=b_color), shape = (a=a_shape,b=b_shape))
 	return Parm(viewing_distance, topdown_weight, bottomup_weight, 
-		noise, rnd_time, σ, persistence, acuity, n_finst, finst_span, β₀exe, Δexe, τₐ, Δτ, args.data)
+		noise, rnd_time, σ, persistence, acuity, n_finst, finst_span, β₀exe, Δexe, τₐ, Δτ, NamedTuple(args))
 end
 
 """
