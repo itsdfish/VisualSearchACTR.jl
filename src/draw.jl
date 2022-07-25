@@ -52,7 +52,7 @@ end
 
 function draw_focus!(actr, ex)
     c = ex.canvas
-    w = actr.visual_location.visicon[1].width
+    w = actr.visicon[1].width
     x,y = actr.visual.focus
     @guarded draw(c) do widget
         ctx = getgc(c)
