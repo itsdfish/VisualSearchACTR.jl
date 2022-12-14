@@ -27,13 +27,13 @@ function print_response(actr, response)
     println(get_time(actr), " Motor..................... respond $response")
 end
 
-function print_abstract_location(actr, status)
+function print_abstract_location(actr, status, ppi)
     println(get_time(actr), " Abstract-Location......... $status")
     println("\t  iconic memory size........ ", iconic_memory_size(actr), " out of ", visicon_size(actr))
     println("\t  termination probability... ", "≈ ", round(termination_prob(actr), digits=2))
     status != "object found" ? (return) : nothing
     result = actr.visual_location.buffer[1]
-    angular_distance = compute_angular_distance(actr, result)
+    angular_distance = compute_angular_distance(actr, result, ppi)
     angular_size = result.angular_size
     parms = actr.parms.acuity[:color]
     color_threshold = compute_acuity_threshold(parms, angular_distance)

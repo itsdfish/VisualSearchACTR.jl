@@ -20,7 +20,7 @@ end
 function run_trial!(ex, target, present, visual_objects; parms...)
     ex.trial_fixations = Fixation[]
     actr = initialize_model(ex, target, visual_objects; parms...)
-    compute_angular_size!(actr)
+    compute_angular_size!(actr, ex.ppi)
     orient!(actr, ex)
     ex.visible ? draw_cross!(actr, ex) : nothing
     ex.trace ? println("\n", get_time(actr), " start search sequence") : nothing

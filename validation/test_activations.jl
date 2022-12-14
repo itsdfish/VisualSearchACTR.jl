@@ -26,7 +26,7 @@ vals = [(color = :gray, shape = :q, x = 338, y =515, value = :q),
 cd(@__DIR__)
 using Pkg
 Pkg.activate("..")
-using Revise, PAAV, Plots, DataFrames, Statistics, StatsPlots
+using Revise, VisualSearchACTR, Plots, DataFrames, Statistics, StatsPlots
 
 experiment = Experiment(n_trials=10^1,
     trace=true, visible=true, speed=.2)
@@ -36,13 +36,13 @@ visicon = [VisualObject(features=(color=Feature(;value=x.color), shape=Feature(;
 location=[x.x-0.,x.y-0.]) for x in vals ]
 
 model = Model(;target=target, iconic_memory=visicon, noise=0.0)
-PAAV.compute_angular_size!(model)
+VisualSearchACTR.compute_angular_size!(model)
 model.focus = [324.0,324.0]
-#PAAV.orient!(model, experiment)
-PAAV.update_decay!(model)
-PAAV.update_finst!(model)
-PAAV.update_visibility!(model)
-PAAV.compute_activations!(model)
+#VisualSearchACTR.orient!(model, experiment)
+VisualSearchACTR.update_decay!(model)
+VisualSearchACTR.update_finst!(model)
+VisualSearchACTR.update_visibility!(model)
+VisualSearchACTR.compute_activations!(model)
 
-map(x->(bottomup=x.bottomup_activation,topdown=x.topdown_activation), visicon)
+map(x -> (bottomup=x.bottomup_activation,topdown=x.topdown_activation), visicon)
 #run_trial!(experiment)

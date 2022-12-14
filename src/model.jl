@@ -7,7 +7,7 @@ function search!(actr, ex)
         # update the finst values for return of inhabition
         update_finst!(actr)
         # update which items are in iconic memory based on what is currently visible 
-        update_visibility!(actr)
+        update_visibility!(actr, ex.ppi)
         # update the activations 
         compute_activations!(actr)
         ex.visible ? update_window!(actr, ex) : nothing
@@ -69,7 +69,7 @@ function motor_time!(actr, ex)
     θ = gamma_parms(.065)
     tΔ = rand(Gamma(θ...))
     actr.time += tΔ
-    ex.visible ? sleep(tΔ/ex.speed) : nothing
+    ex.visible ? sleep(tΔ / ex.speed) : nothing
     return nothing
  end
 
@@ -80,7 +80,7 @@ function cycle_time!(actr, ex)
         tΔ = rand(Gamma(θ...))
     end
     actr.time += tΔ
-    ex.visible ? sleep(tΔ/ex.speed) : nothing
+    ex.visible ? sleep(tΔ / ex.speed) : nothing
     return nothing
 end
 
@@ -97,7 +97,7 @@ saccade_time(actr) = saccade_time(actr, actr.visual_location.buffer[1])
 function saccade_time(actr, vo)
     @unpack Δexe, β₀exe = actr.parms
     distance = compute_angular_distance(actr, vo)
-    μ = β₀exe + distance*Δexe
+    μ = β₀exe + distance * Δexe
     θ = gamma_parms(μ)
     return rand(Gamma(θ...))
 end
@@ -120,7 +120,7 @@ function add_fixation!(ex, actr)
     visicon = actr.visicon
     attend_time = vision[1].attend_time 
     slots = goal[1].slots
-    idx = findfirst(x->x.location == vision[1].location, visicon)
+    idx = findfirst(x -> x.location == vision[1].location, visicon)
     fixation = Fixation(; attend_time, color=slots.color, 
         shape=slots.shape, idx, stop=false)
     push!(ex.trial_fixations, fixation)
@@ -168,36 +168,36 @@ end
 
 function find_object1!(actr, ex)
     @unpack iconic_memory = actr.visual_location
-    visible_objects = filter(x->relevant_object(actr, x), iconic_memory)
+    visible_objects = filter(x -> relevant_object(actr, x), iconic_memory)
     if isempty(visible_objects)
-        ex.trace ? print_abstract_location(actr, "error locating object") : nothing
+        ex.trace ? print_abstract_location(actr, "error locating object", ex.ppi) : nothing
         return :error
     end
     p = fixation_probs(actr, actr.visicon, visible_objects)
     idx = sample(1:length(p), Weights(p))
     if idx == length(p)
-        ex.trace ? print_abstract_location(actr, "termination threshold exceeded") : nothing
+        ex.trace ? print_abstract_location(actr, "termination threshold exceeded", ex.ppi) : nothing
         return :error
     end
     max_vo = visible_objects[idx]
     actr.visual_location.buffer = [max_vo]
-    ex.trace ? print_abstract_location(actr, "object found") : nothing
+    ex.trace ? print_abstract_location(actr, "object found", ex.ppi) : nothing
     return :searching
 end
 
 function find_object2!(actr, ex)
-    visible_objects = filter(x->relevant_object(actr, x), get_iconic_memory(actr))
+    visible_objects = filter(x -> relevant_object(actr, x), get_iconic_memory(actr))
     if isempty(visible_objects)
-        ex.trace ? print_abstract_location(actr, "error locating object") : nothing
+        ex.trace ? print_abstract_location(actr, "error locating object", ex.ppi) : nothing
         return :error
     end
     max_vo = max_activation(visible_objects)
     if terminate(actr, max_vo)
-        ex.trace ? print_abstract_location(actr, "termination threshold exceeded") : nothing
+        ex.trace ? print_abstract_location(actr, "termination threshold exceeded", ex.ppi) : nothing
         return :error
     end
     actr.visual_location.buffer = max_vo
-    ex.trace ? print_abstract_location(actr, "object found") : nothing
+    ex.trace ? print_abstract_location(actr, "object found", ex.ppi) : nothing
     return :searching
 end
 
@@ -251,7 +251,7 @@ function terminate(actr, max_vo::VisualObject)
 end
 
 function update_decay!(actr)
-    map(x->update_decay!(actr, x), get_iconic_memory(actr))
+    map(x -> update_decay!(actr, x), get_iconic_memory(actr))
 end
 
 function update_decay!(actr, object)
@@ -265,9 +265,9 @@ function update_decay!(actr, object)
 end
 
 function update_finst!(actr)
-    attended_objects = filter(x->x.attended, get_iconic_memory(actr))
+    attended_objects = filter(x -> x.attended, get_iconic_memory(actr))
     isempty(attended_objects) ? (return) : nothing
-    map(x->update_finst_span!(actr, x), attended_objects)
+    map(x -> update_finst_span!(actr, x), attended_objects)
     update_n_finst!(actr, attended_objects)
 end
 
@@ -282,7 +282,7 @@ end
 function update_n_finst!(actr, vos)
     N = length(vos) - actr.parms.n_finst
     N <= 0 ? (return) : nothing
-    sort!(vos, by=x->x.attend_time)
+    sort!(vos, by=x -> x.attend_time)
     for i in 1:N
         vos[i].attended = false
         vos[i].attend_time = 0.0
@@ -292,7 +292,7 @@ end
 
 function compute_activations!(actr)
     @unpack iconic_memory = actr.visual_location
-    iconic_memory = filter(x->x.visible, actr.visicon)
+    iconic_memory = filter(x -> x.visible, actr.visicon)
     topdown_activations!(iconic_memory, actr.goal.buffer[1])
     bottomup_activations!(iconic_memory)
     weighted_activations!(actr, iconic_memory)
@@ -374,15 +374,15 @@ add_noise(actr) = rand(Normal(0, actr.parms.σ))
 
 add_noise!(actr, vo::VisualObject) = vo.activation += add_noise(actr)
 
-add_noise!(actr, iconic_memory) = map(x->add_noise!(actr, x), iconic_memory)
+add_noise!(actr, iconic_memory) = map(x -> add_noise!(actr, x), iconic_memory)
 
-function update_visibility!(actr)
-    map(x->feature_visibility!(actr, x), get_iconic_memory(actr))
-    map(x->object_visibility!(x), get_iconic_memory(actr))
+function update_visibility!(actr, ppi)
+    map(x -> feature_visibility!(actr, x, ppi), get_iconic_memory(actr))
+    map(x -> object_visibility!(x), get_iconic_memory(actr))
 end
 
-function feature_visibility!(actr, vo)
-    angular_distance = compute_angular_distance(actr, vo)
+function feature_visibility!(actr, vo, ppi)
+    angular_distance = compute_angular_distance(actr, vo, ppi)
     for (f,v) in pairs(vo.features)
         parms = actr.parms.acuity[f]
         threshold = compute_acuity_threshold(parms, angular_distance)
@@ -421,20 +421,27 @@ end
 """
 Angular distance in degress. Also known as eccentricity
 """
-function compute_angular_distance(actr, vo)
+function compute_angular_distance(actr, vo, ppi)
     distance = compute_distance(actr, vo)
-    return pixels_to_degrees(actr, distance)
+    #return compute_angular_size(distance, distance)
+    return pixels_to_degrees(actr, distance, ppi)
 end
 
-function compute_angular_size!(actr)
-    map(x->compute_angular_size!(actr, x), get_visicon(actr))
+function compute_angular_size!(actr, ppi)
+    map(x -> compute_angular_size!(actr, x, ppi), get_visicon(actr))
     return nothing
 end
 
-function compute_angular_size!(actr, vo)
-    ppi = 72 # pixels per inch
-    distance = actr.parms.viewing_distance * ppi
+function compute_angular_size!(actr, vo, ppi)
+    (;viewing_distance,) = actr.parms
+    distance = viewing_distance * ppi
     vo.angular_size = compute_angular_size(distance, vo.width)
+end
+
+function pixels_to_degrees(actr, pixels, ppi)
+    (;viewing_distance,) = actr.parms
+    radians = 2 * atan((pixels / ppi) / (2 * viewing_distance))
+    return rad2deg(radians)
 end
 
 function compute_angular_size(distance, width)
@@ -448,12 +455,6 @@ function compute_acuity_threshold(parms, angular_distance)
     return parms.a * angular_distance^2 - parms.b * angular_distance
 end
 
-function pixels_to_degrees(actr, pixels)
-    ppi = 72 # pixels per inch
-    radians = atan(pixels/ppi, actr.parms.viewing_distance)
-    return rad2deg(radians)
-end
-
 function orient!(actr, ex)
     w = ex.array_width / 2
     actr.visual.focus = fill(w, 2)
@@ -461,7 +462,7 @@ end
 
 function fixation_prob(actr, visicon, visible_objects, fixation)
     @unpack stop,idx = fixation
-    act = map(x->x.activation, visible_objects)
+    act = map(x -> x.activation, visible_objects)
     push!(act, actr.parms.τₐ)
     σ = actr.parms.σ*sqrt(2)
     vo_act = stop ? act[end] : visicon[idx].activation
@@ -469,7 +470,7 @@ function fixation_prob(actr, visicon, visible_objects, fixation)
 end
 
 function fixation_probs(actr, visicon, visible_objects)
-    act = map(x->x.activation, visible_objects)
+    act = map(x -> x.activation, visible_objects)
     push!(act, actr.parms.τₐ)
     σ = actr.parms.σ * sqrt(2)
     return exp.(act / σ) / sum(exp.(act / σ))

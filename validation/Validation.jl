@@ -4,7 +4,7 @@
 cd(@__DIR__)
 using Pkg
 Pkg.activate("..")
-using Revise, PAAV, Plots, DataFrames, Statistics, StatsPlots
+using Revise, VisualSearchACTR, Plots, DataFrames, Statistics, StatsPlots
 using GLM, Random
 cd(@__DIR__)
 include("simulation.jl")

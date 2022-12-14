@@ -7,7 +7,7 @@ function run_simulation(set_sizes; fun=conjunctive_set, kwargs...)
         df = DataFrame(experiment.data)
         df_present = filter(x->x.target_present == :present, df)
         hit_rate = mean(df_present.response .== :present)
-        temp = by(df, [:target_present,:response], :rt=>mean)
+        temp = combine(groupby(df, [:target_present,:response]), :rt=>mean)
         temp[!,:distractors] .= n
         temp[!,:hit_rate] .= hit_rate
         push!(results, temp)

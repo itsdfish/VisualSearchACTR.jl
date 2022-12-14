@@ -67,7 +67,8 @@ end
             (color = :gray, shape = :q, x = 511 , y = 462),
             (color = :black, shape = :p, x = 511 , y = 400)]
 
-    experiment = Experiment(n_trials=10^1, trace=true, visible=false)
+    ppi = 72
+    experiment = Experiment(;n_trials=10^1, trace=true, visible=false, ppi)
 
     target = (color=:gray,shape=:p)
     visual_objects = [VisualObject(features=(color=Feature(;value=x.color), shape=Feature(;value=x.shape)), 
@@ -84,11 +85,11 @@ end
     iconic_memory = get_iconic_memory(actr)
 
     # model = Model(;target=target, iconic_memory=visicon, noise=0.0)
-    VisualSearchACTR.compute_angular_size!(actr)
+    VisualSearchACTR.compute_angular_size!(actr, ppi)
     actr.visual.focus = [324.0,324.0]
     VisualSearchACTR.update_decay!(actr)
     VisualSearchACTR.update_finst!(actr)
-    VisualSearchACTR.update_visibility!(actr)
+    VisualSearchACTR.update_visibility!(actr, ppi)
     VisualSearchACTR.compute_activations!(actr)
 
     correct_top_down = [2,0,1,1]

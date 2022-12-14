@@ -62,7 +62,7 @@ mutable struct Parm{A,T,T1} <: AbstractParms
 	misc::T
 end
 
-function Parm(;viewing_distance=30.0, topdown_weight=.66, bottomup_weight=1.1, noise=false, rnd_time=false, 
+function Parm(;viewing_distance=30.0, topdown_weight=.66, bottomup_weight=1.1, noise=true, rnd_time=false, 
 	σ=.2*π/sqrt(3), persistence=4.0, a_color=.104, b_color=.85, a_shape=.142, b_shape=.96, n_finst=4, 
 	finst_span=3.0, β₀exe=.02, Δexe=.002, τₐ=0.0, Δτ=0.39, args...)
 	acuity = (color = (a=a_color,b=b_color), shape = (a=a_shape,b=b_shape))
@@ -174,20 +174,21 @@ mutable struct Experiment{T1,T2,F<:Function}
 	visible::Bool
 	speed::Float64
 	populate_visicon::F
+	ppi::Int
 end
 
 function Experiment(;array_width=428., object_width=32.0, n_cells=8, n_trials=20,
 	n_color_distractors=20, set_size=40, n_shape_distractors=20, shapes=[:p,:q], colors=[:red,:blue],
 	base_rate=.50, data=Data[], trial_data=Data(), fixations=Vector{Vector{Fixation}}(), trial_fixations=Fixation[],
-	trace=false, window=nothing, canvas=nothing, visible=false, speed=1.0, populate_visicon=conjunctive_ratio)
-	cell_width = array_width/n_cells
+	trace=false, window=nothing, canvas=nothing, visible=false, speed=1.0, populate_visicon=conjunctive_ratio, ppi=72)
+	cell_width = array_width / n_cells
 	@argcheck  cell_width > object_width
 	@argcheck n_color_distractors + n_shape_distractors + 1 <= n_cells^2
 	visible ? ((canvas,window) = setup_window(array_width)) : nothing
     visible ? Gtk.showall(window) : nothing
 	return Experiment(array_width, n_cells, n_trials, cell_width, object_width,
 		n_color_distractors, n_shape_distractors, set_size, colors, shapes, base_rate,
-		data, trial_data, fixations, trial_fixations, trace, window, canvas, visible, speed, populate_visicon)
+		data, trial_data, fixations, trial_fixations, trace, window, canvas, visible, speed, populate_visicon, ppi)
 end
 
 function import_gui()
