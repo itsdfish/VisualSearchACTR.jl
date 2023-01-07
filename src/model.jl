@@ -1,3 +1,13 @@
+"""
+    search!(actr, ex)
+
+Search for a target among an array of visual objects.
+
+# Arguments
+
+- `actr`: an ACT-R object 
+- `ex`: an experiment object 
+"""
 function search!(actr, ex)
     status = :searching
     # search until target found or termination threshold met
@@ -12,7 +22,7 @@ function search!(actr, ex)
         compute_activations!(actr)
         ex.visible ? update_window!(actr, ex) : nothing
         # perform search sequence
-        status = _search!(actr, ex)
+        status = fixate!(actr, ex)
         ex.visible ? update_window!(actr, ex) : nothing
     end
     # add data for trial 
@@ -22,7 +32,7 @@ function search!(actr, ex)
     return nothing
 end
 
-function _search!(actr, ex)
+function fixate!(actr, ex)
     ex.trace ? print_trial(ex) : nothing
     data = ex.trial_data
     # production cycle
@@ -66,8 +76,11 @@ function _search!(actr, ex)
 end
 
 function motor_time!(actr, ex)
-    θ = gamma_parms(.065)
-    tΔ = rand(Gamma(θ...))
+    tΔ = .065
+    if actr.parms.rnd_time
+        θ = gamma_parms(.065)
+        tΔ = rand(Gamma(θ...))
+    end
     actr.time += tΔ
     ex.visible ? sleep(tΔ / ex.speed) : nothing
     return nothing
@@ -88,7 +101,7 @@ function attend_time!(actr, ex)
     # tΔ = saccade_time(model) + visual_encoding(model)
     tΔ = visual_encoding(actr)
     actr.time += tΔ
-    ex.visible ? sleep(tΔ/ex.speed) : nothing
+    ex.visible ? sleep(tΔ / ex.speed) : nothing
     return nothing
 end
 
@@ -103,11 +116,12 @@ function saccade_time(actr, vo)
 end
 
 function visual_encoding(actr)
+    tΔ = .085
     if actr.parms.rnd_time 
-        θ = gamma_parms(.085)
-        return rand(Gamma(θ...))
+        θ = gamma_parms(tΔ)
+        tΔ = rand(Gamma(θ...))
     end
-    return .085
+    return tΔ
 end
 
 gamma_parms(μ, σ) = (μ/σ)^2,σ^2/μ
@@ -414,11 +428,18 @@ function compute_distance(actr::ACTRV, object)
     sqrt(sum((actr.visual.focus .- object.location).^2))
 end
 
+"""
+    compute_distance(vo1, vo2)
+
+Computes the distance in pixels between two visual objects.
+"""
 function compute_distance(vo1, vo2)
     sqrt(sum((vo1.location .- vo2.location).^2))
 end
 
 """
+    compute_angular_distance(actr, vo, ppi)
+
 Angular distance in degress. Also known as eccentricity
 """
 function compute_angular_distance(actr, vo, ppi)
