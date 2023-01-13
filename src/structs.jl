@@ -1,4 +1,5 @@
-mutable struct Feature{T}
+abstract type AbstractFeature end
+mutable struct Feature{T} <: AbstractFeature
     fixation_time::Float64
     visible::Bool
 	value::T
@@ -42,7 +43,8 @@ end
 - `n_finst`: number of visual objects in finst
 - `finst_span`: the duration of finst
 - `τₐ`: activation threshold for terminating search
--  `Δτ`: activation threshold increment following a fixation to a distractor
+- `Δτ`: activation threshold increment following a fixation to a distractor
+- `σfactor`: a factor of mean processing time for setting the standard deviation
 """
 mutable struct Parm{A,T,T1} <: AbstractParms
     viewing_distance::Float64
@@ -59,15 +61,16 @@ mutable struct Parm{A,T,T1} <: AbstractParms
 	Δexe::Float64
 	τₐ::Float64
 	Δτ::Float64
+	σfactor::Float64
 	misc::T
 end
 
 function Parm(;viewing_distance=30.0, topdown_weight=.66, bottomup_weight=1.1, noise=true, rnd_time=true, 
 	σ=.2*π/sqrt(3), persistence=4.0, a_color=.104, b_color=.85, a_shape=.142, b_shape=.96, n_finst=4, 
-	finst_span=3.0, β₀exe=.02, Δexe=.002, τₐ=0.0, Δτ=0.39, args...)
+	finst_span=3.0, β₀exe=.02, Δexe=.002, τₐ=0.0, Δτ=0.39, σfactor = 1/3, args...)
 	acuity = (color = (a=a_color,b=b_color), shape = (a=a_shape,b=b_shape))
 	return Parm(viewing_distance, topdown_weight, bottomup_weight, 
-		noise, rnd_time, σ, persistence, acuity, n_finst, finst_span, β₀exe, Δexe, τₐ, Δτ, NamedTuple(args))
+		noise, rnd_time, σ, persistence, acuity, n_finst, finst_span, β₀exe, Δexe, τₐ, Δτ, σfactor, NamedTuple(args))
 end
 
 """
@@ -126,9 +129,14 @@ end
 
 Data() = Data(fill(:_,5)..., 0.0)
 
+abstract type AbstractExperiment end
 
 """
 ** Experiment **
+
+An object containing parameters for a visual search experiment. 
+
+# Keywords 
 
 - `array_width`: with of visual array in pixels
 - `n_cells`: number of cells in visual array grid
@@ -150,9 +158,10 @@ Data() = Data(fill(:_,5)..., 0.0)
 - `canvas`: GUI canvas
 - `visible`: displays GUI if true
 - `speed`: how quickly to simulate the model if trace is on
-- `populate_visicon`: a function that populates the visicon
+- `populate_visicon`: a function that populates the visicon. The function must accept arguments (ex, target_color, target_shape, present), 
+where ex is the experiment object, and target_color, target_shape, and present are symbols. 
 """
-mutable struct Experiment{T1,T2,F<:Function}
+mutable struct Experiment{T1,T2,F<:Function} <: AbstractExperiment
 	array_width::Float64
 	n_cells::Int64
 	n_trials::Int64

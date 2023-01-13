@@ -32,6 +32,18 @@ function search!(actr, ex)
     return nothing
 end
 
+"""
+    fixate!(actr, ex)
+
+Attempts to select the visual object with the highest visual activation and attends to it. 
+If the target is found, a response is collected. If nothing exceeds threshold, then an "absent" response is collected.
+If a distractor is found, the symbol "searching" is returned. 
+
+# Arguments
+
+- `actr`: an ACT-R object 
+- `ex`: an experiment object 
+"""
 function fixate!(actr, ex)
     ex.trace ? print_trial(ex) : nothing
     data = ex.trial_data
@@ -75,10 +87,20 @@ function fixate!(actr, ex)
     return status
 end
 
+"""
+motor_time!(actr, ex)
+
+Add motor execution time to simulated time 
+
+# Arguments
+-`actr`: an ACTR model object 
+- `ex`: an experiment object
+"""
 function motor_time!(actr, ex)
+    # mean motor time 
     tΔ = .065
     if actr.parms.rnd_time
-        θ = gamma_parms(.065)
+        θ = gamma_parms(tΔ, actr.parms.σfactor)
         tΔ = rand(Gamma(θ...))
     end
     actr.time += tΔ
@@ -87,9 +109,10 @@ function motor_time!(actr, ex)
  end
 
 function cycle_time!(actr, ex)
+    # mean cycle time 
     tΔ = .05
     if actr.parms.rnd_time 
-        θ = gamma_parms(.05)
+        θ = gamma_parms(tΔ, actr.parms.σfactor)
         tΔ = rand(Gamma(θ...))
     end
     actr.time += tΔ
@@ -98,118 +121,57 @@ function cycle_time!(actr, ex)
 end
 
 function attend_time!(actr, ex)
-    # tΔ = saccade_time(model) + visual_encoding(model)
-    tΔ = visual_encoding(actr)
+    tΔ = saccade_time(actr, ex.ppi) + visual_encoding(actr)
     actr.time += tΔ
     ex.visible ? sleep(tΔ / ex.speed) : nothing
     return nothing
 end
 
-saccade_time(actr) = saccade_time(actr, actr.visual_location.buffer[1])
+saccade_time(actr, ppi) = saccade_time(actr, actr.visual_location.buffer[1], ppi)
 
-function saccade_time(actr, vo)
+function saccade_time(actr, vo, ppi)
     @unpack Δexe, β₀exe = actr.parms
-    distance = compute_angular_distance(actr, vo)
+    distance = compute_angular_distance(actr, vo, ppi)
     μ = β₀exe + distance * Δexe
-    θ = gamma_parms(μ)
+    θ = gamma_parms(μ, actr.parms.σfactor)
     return rand(Gamma(θ...))
 end
 
 function visual_encoding(actr)
-    tΔ = .085
+    tΔ = .05
     if actr.parms.rnd_time 
-        θ = gamma_parms(tΔ)
+        θ = gamma_parms(tΔ, actr.parms.σfactor)
         tΔ = rand(Gamma(θ...))
     end
     return tΔ
 end
 
-gamma_parms(μ, σ) = (μ/σ)^2,σ^2/μ
-
-gamma_parms(μ) = gamma_parms(μ, μ/3)
-
-function add_fixation!(ex, actr)
-    goal = get_buffer(actr, :goal)
-    vision = get_buffer(actr, :visual)
-    visicon = actr.visicon
-    attend_time = vision[1].attend_time 
-    slots = goal[1].slots
-    idx = findfirst(x -> x.location == vision[1].location, visicon)
-    fixation = Fixation(; attend_time, color=slots.color, 
-        shape=slots.shape, idx, stop=false)
-    push!(ex.trial_fixations, fixation)
-    return nothing
+function gamma_parms(μ, f = 1 / 3)
+    σ = f * μ
+    return (μ/σ)^2,σ^2/μ
 end
 
-function add_no_fixation!(ex, actr)
-    goal = get_buffer(actr, :goal)
-    vision = get_buffer(actr, :visual)
-    visicon = actr.visicon
-    attend_time = actr.time
-    slots = goal[1].slots
-    idx = length(visicon) + 1
-    fixation = Fixation(; attend_time, color=slots.color, 
-        shape=slots.shape, idx, stop=true)
-    push!(ex.trial_fixations, fixation)
-    return nothing
-end
-
-function add_data!(ex)
-    push!(ex.data, ex.trial_data)
-    return nothing
-end
-
-function add_response!(actr, data, status)
-    data.response = status
-    data.rt = actr.time
-    set_trial_type!(data)
-    return nothing
-end
+uniform_parms(μ) =  (2 / 3) * μ, (4 / 3) * μ
 
 function relevant_object(actr, vo)
     !vo.visible || vo.attended ? (return false) : (return true)
 end
 
 function find_object!(actr, ex)
-    v = :_
-    if actr.parms.noise
-        v = find_object2!(actr, ex)
-    else
-        v = find_object1!(actr, ex)
-    end
-    return v
-end
-
-function find_object1!(actr, ex)
-    @unpack iconic_memory = actr.visual_location
-    visible_objects = filter(x -> relevant_object(actr, x), iconic_memory)
-    if isempty(visible_objects)
-        ex.trace ? print_abstract_location(actr, "error locating object", ex.ppi) : nothing
-        return :error
-    end
-    p = fixation_probs(actr, actr.visicon, visible_objects)
-    idx = sample(1:length(p), Weights(p))
-    if idx == length(p)
-        ex.trace ? print_abstract_location(actr, "termination threshold exceeded", ex.ppi) : nothing
-        return :error
-    end
-    max_vo = visible_objects[idx]
-    actr.visual_location.buffer = [max_vo]
-    ex.trace ? print_abstract_location(actr, "object found", ex.ppi) : nothing
-    return :searching
-end
-
-function find_object2!(actr, ex)
     visible_objects = filter(x -> relevant_object(actr, x), get_iconic_memory(actr))
+    # return error if no objects are found
     if isempty(visible_objects)
         ex.trace ? print_abstract_location(actr, "error locating object", ex.ppi) : nothing
         return :error
     end
+    # return visual object with highest visual activation
     max_vo = max_activation(visible_objects)
+    # terminate and return error if no visual objects have activation above threshold 
     if terminate(actr, max_vo)
         ex.trace ? print_abstract_location(actr, "termination threshold exceeded", ex.ppi) : nothing
         return :error
     end
+    # if visual object with highest activation is above threshold, put it in the location buffer
     actr.visual_location.buffer = max_vo
     ex.trace ? print_abstract_location(actr, "object found", ex.ppi) : nothing
     return :searching
@@ -259,7 +221,7 @@ end
 
 terminate(actr, max_vo) = terminate(actr, max_vo[1])
 
-function terminate(actr, max_vo::VisualObject)
+function terminate(actr, max_vo::AbstractVisualObject)
     τ = actr.parms.τₐ + add_noise(actr)
     τ > max_vo.activation ? (return true) : (return false)
 end
@@ -354,7 +316,7 @@ function bottomup_activation(f1, f2, distance)
     activation = 0.0
     for (f,v) in pairs(f1)
         if (f2[f].value ≠ v.value) && v.visible && f2[f].visible
-            activation += 1.0/sqrt(distance)
+            activation += 1.0 / sqrt(distance)
         end
     end
     return activation
@@ -381,13 +343,39 @@ function topdown_activation!(object, target)
         end
     end
     object.topdown_activation = activation
-    return nothing
+    return activation
 end
 
+"""
+    add_noise(actr)
+
+Returns a sample of normally distributed noise with standard deviation σ.
+
+# Arguments
+- `actr`: an ACTR model object 
+"""
 add_noise(actr) = rand(Normal(0, actr.parms.σ))
 
+"""
+    add_noise!(actr, vo::VisualObject)
+
+Adds normally distributed noise with standard deviation σ to visual object `vo`.
+
+# Arguments
+- `actr`: an ACTR model object 
+- `vo::VisualObject`: a visual object containing features 
+"""
 add_noise!(actr, vo::VisualObject) = vo.activation += add_noise(actr)
 
+"""
+    add_noise!(actr, vo::VisualObject)
+
+Adds normally distributed noise with standard deviation σ to all visual objects in iconic memory.
+
+# Arguments
+- `actr`: an ACTR model object 
+- `iconic_memory`: a temporary store for all visible visual objects 
+"""
 add_noise!(actr, iconic_memory) = map(x -> add_noise!(actr, x), iconic_memory)
 
 function update_visibility!(actr, ppi)
@@ -395,11 +383,24 @@ function update_visibility!(actr, ppi)
     map(x -> object_visibility!(x), get_iconic_memory(actr))
 end
 
+"""
+    feature_visibility!(actr, vo, ppi)
+
+Updates `visible` field for each feature in `vo`. A feature is visible if it is within 
+the acuity threshold. 
+
+# Arguments 
+
+- `actr`: an ACTR model object 
+- `vo`: a visual object containing features 
+- `ppi`: pixels per inch
+"""
 function feature_visibility!(actr, vo, ppi)
     angular_distance = compute_angular_distance(actr, vo, ppi)
     for (f,v) in pairs(vo.features)
         parms = actr.parms.acuity[f]
         threshold = compute_acuity_threshold(parms, angular_distance)
+        # note that objects in finst will stay visible briefly even if their size is less than threshold
         if feature_is_visible(vo, threshold)
             v.visible = true
         end
@@ -407,7 +408,17 @@ function feature_visibility!(actr, vo, ppi)
     return nothing
 end
 
-feature_is_visible(vo::VisualObject, threshold) = feature_is_visible(vo.angular_size, threshold)
+"""
+    feature_is_visible(vo::AbstractVisualObject, threshold) 
+
+Tests whether a feature of a visual object is visible. A feature is visible if its angular size 
+is greater than the acuity threshold. 
+
+# Arguments
+- `vo`: a visual object containing features 
+- `threshold`: threshold of visiblity. Objects larger than the acuity threshold are visible
+"""
+feature_is_visible(vo::AbstractVisualObject, threshold) = feature_is_visible(vo.angular_size, threshold)
 
 function feature_is_visible(angular_size, threshold)
     return angular_size > threshold
@@ -424,8 +435,18 @@ function object_visibility!(object)
     return nothing
 end
 
-function compute_distance(actr::ACTRV, object)
-    sqrt(sum((actr.visual.focus .- object.location).^2))
+"""
+    compute_distance(actr::ACTRV, vo)
+
+Compute the distance between a visual object and the model's fixation point. 
+
+# Arguments
+
+- `actr`: an ACTR model object 
+- `vo`: a visual object
+"""
+function compute_distance(actr::ACTRV, vo)
+    sqrt(sum((actr.visual.focus .- vo.location).^2))
 end
 
 """
@@ -440,42 +461,90 @@ end
 """
     compute_angular_distance(actr, vo, ppi)
 
-Angular distance in degress. Also known as eccentricity
+Angular distance in degress between the model's visual fixation point and a visual object.
+
+- `actr`: an ACTR model object 
+- `vo`: a visual object
+- `ppi`: pixels per inch
 """
 function compute_angular_distance(actr, vo, ppi)
-    distance = compute_distance(actr, vo)
-    #return compute_angular_size(distance, distance)
-    return pixels_to_degrees(actr, distance, ppi)
+    (;viewing_distance,) = actr.parms
+    object_distance = compute_distance(actr, vo)
+    return compute_angular_size(viewing_distance, object_distance / ppi)
 end
 
-function compute_angular_size!(actr, ppi)
+"""
+    compute_angular_size!(actr::ACTRV, ppi)
+
+Computes the angular size of all objects in the visicon.
+# Arguments
+
+- `actr`: an ACTR model object
+- `ppi`: pixels per inch
+"""
+function compute_angular_size!(actr::ACTRV, ppi)
     map(x -> compute_angular_size!(actr, x, ppi), get_visicon(actr))
     return nothing
 end
 
-function compute_angular_size!(actr, vo, ppi)
+"""
+    compute_angular_size!(actr::ACTRV, vo, ppi)
+
+Computes the angular size of an object. Inputs distance and size 
+must been in the same units.
+
+# Arguments
+
+- `actr`: an ACTR model object
+- `vo`: a visual object
+- `ppi`: pixels per inch
+"""
+function compute_angular_size!(actr::ACTRV, vo, ppi)
     (;viewing_distance,) = actr.parms
     distance = viewing_distance * ppi
     vo.angular_size = compute_angular_size(distance, vo.width)
 end
 
-function pixels_to_degrees(actr, pixels, ppi)
-    (;viewing_distance,) = actr.parms
-    radians = 2 * atan((pixels / ppi) / (2 * viewing_distance))
-    return rad2deg(radians)
-end
+"""
+    compute_angular_size(distance, size)
 
-function compute_angular_size(distance, width)
-    radians = 2 * atan(width / (2 * distance))
+Compute the angular size of an object. Inputs distance and size 
+must been in the same units.
+
+# Arguments
+
+- `distance`: distance between observer and object 
+- `size`: length of object
+"""
+function compute_angular_size(distance, _size)
+    radians = 2 * atan(_size / (2 * distance))
     return rad2deg(radians)
 end
 
 rad2deg(radians) = radians * 180 / pi
 
+"""
+    compute_acuity_threshold(parms, angular_distance)
+
+Computes the acuity threshold of feature visibility. 
+
+# Arguments
+- `parms`: aquity parameters `a` and `b`
+- `angular_distance`: angular distance between fixation point and a visual object
+"""
 function compute_acuity_threshold(parms, angular_distance)
     return parms.a * angular_distance^2 - parms.b * angular_distance
 end
 
+"""
+    orient!(actr, ex)
+
+Orient attention to fixation cross located at the center of the array. 
+
+# Arguments
+- `actr`: an ACTR model object 
+- `ex`: an experiment object 
+"""
 function orient!(actr, ex)
     w = ex.array_width / 2
     actr.visual.focus = fill(w, 2)
@@ -497,14 +566,43 @@ function fixation_probs(actr, visicon, visible_objects)
     return exp.(act / σ) / sum(exp.(act / σ))
 end
 
-# visual_encoding(model) = visual_encoding(model, model.abstract_location[1])
-#
-# function visual_encoding(model, vo)
-#     frequency = model.init_freq
-#     distance = compute_angular_distance(model, vo)
-#     μ = model.K_encode*-log(frequency)*exp(distance*model.κ_encode)
-#     θ = gamma_parms(μ)
-#     # vo.encode_start = model.current_time
-#     # vo.encode_time = rand(Gamma(a, b))
-#     return rand(Gamma(θ...))
-# end
+
+function add_fixation!(ex, actr)
+    goal = get_buffer(actr, :goal)
+    vision = get_buffer(actr, :visual)
+    visicon = actr.visicon
+    attend_time = vision[1].attend_time 
+    slots = goal[1].slots
+    idx = findfirst(x -> x.location == vision[1].location, visicon)
+    fixation = Fixation(; attend_time, color=slots.color, 
+        shape=slots.shape, idx, stop=false)
+    push!(ex.trial_fixations, fixation)
+    return nothing
+end
+
+function add_no_fixation!(ex, actr)
+    goal = get_buffer(actr, :goal)
+    vision = get_buffer(actr, :visual)
+    visicon = actr.visicon
+    attend_time = actr.time
+    slots = goal[1].slots
+    idx = length(visicon) + 1
+    fixation = Fixation(; attend_time, color=slots.color, 
+        shape=slots.shape, idx, stop=true)
+    push!(ex.trial_fixations, fixation)
+    return nothing
+end
+
+function add_data!(ex)
+    push!(ex.data, ex.trial_data)
+    return nothing
+end
+
+function add_response!(actr, data, status)
+    data.response = status
+    data.rt = actr.time
+    set_trial_type!(data)
+    return nothing
+end
+
+
