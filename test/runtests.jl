@@ -138,12 +138,12 @@ end
     df_present = filter(x->x[:target_present] ==:present && x[:response] ==:present, results)
     ols_present = lm(@eval(@formula(rt_mean ~ distractors)), df_present)
     β0,β1 = coef(ols_present)
-    @test β0 ≈ 0.36 rtol = .05
+    @test β0 ≈ 0.45 rtol = .05
     @test β1 ≈ 0.0 atol = .01
     df_absent = filter(x->x[:target_present] ==:absent && x[:response] ==:absent, results)
     ols_absent = lm(@eval(@formula(rt_mean ~ distractors)), df_absent)
     β0,β1 = coef(ols_absent)
-    @test β0 ≈ 0.45 rtol = .05
+    @test β0 ≈ 0.60 rtol = .05
     @test β1 ≈ 0.0 atol = .01
 end
 
@@ -161,12 +161,12 @@ end
     df_present = filter(x->x[:target_present] ==:present && x[:response] ==:present, results)
     ols_present = lm(@eval(@formula(rt_mean ~ distractors)), df_present)
     β0,β1 = coef(ols_present)
-    @test β0 ≈ 0.34 rtol = .05
+    @test β0 ≈ 0.420 rtol = .05
     @test β1 ≈ 0.020 atol = .01
-    df_absent = filter(x->x[:target_present] ==:absent && x[:response] ==:absent, results)
+    df_absent = filter(x -> x[:target_present] ==:absent && x[:response] ==:absent, results)
     ols_absent = lm(@eval(@formula(rt_mean ~ distractors)), df_absent)
     β0,β1 = coef(ols_absent)
-    @test β0 ≈ 0.38 rtol = .05
+    @test β0 ≈ 0.52 rtol = .05
     @test β1 ≈ 0.067 atol = .01
 end
 

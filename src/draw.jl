@@ -66,7 +66,7 @@ function draw_focus!(actr, ex)
 end
 
 function draw_target!(actr, ex)
-    target = filter(x->x.target, actr.visual_location.iconic_memory)
+    target = filter(x -> x.target, actr.visual_location.iconic_memory)
     isempty(target) ? (return) : nothing
     c = ex.canvas
     w = target[1].width

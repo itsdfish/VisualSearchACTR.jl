@@ -77,7 +77,6 @@ function fixate!(actr, ex)
     status = check_object(actr, ex)
     if status == :present
         # if matches, respond present and collect data
-        cycle_time!(actr, ex)
         motor_time!(actr, ex)
         ex.trace ? print_response(actr, "present") : nothing
         add_response!(actr, data, status)
@@ -98,7 +97,7 @@ Add motor execution time to simulated time
 """
 function motor_time!(actr, ex)
     # mean motor time 
-    tΔ = .065
+    tΔ = 0.210
     if actr.parms.rnd_time
         θ = gamma_parms(tΔ, actr.parms.σfactor)
         tΔ = rand(Gamma(θ...))
