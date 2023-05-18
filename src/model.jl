@@ -157,24 +157,50 @@ function relevant_object(actr, vo)
 end
 
 function find_object!(actr, ex)
-    visible_objects = filter(x -> relevant_object(actr, x), get_iconic_memory(actr))
-    # return error if no objects are found
+    v = :_
+    if actr.parms.noise
+        v = find_object2!(actr, ex)
+    else
+        v = find_object1!(actr, ex)
+    end
+    return v
+end
+
+function find_object1!(actr, ex)
+    @unpack iconic_memory = actr.visual_location
+    visible_objects = filter(x->relevant_object(actr, x), iconic_memory)
     if isempty(visible_objects)
         ex.trace ? print_abstract_location(actr, "error locating object", ex.ppi) : nothing
         return :error
     end
-    # return visual object with highest visual activation
+    p = fixation_probs(actr, actr.visicon, visible_objects)
+    idx = sample(1:length(p), Weights(p))
+    if idx == length(p)
+        ex.trace ? print_abstract_location(actr, "termination threshold exceeded", ex.ppi) : nothing
+        return :error
+    end
+    max_vo = visible_objects[idx]
+    actr.visual_location.buffer = [max_vo]
+    ex.trace ? print_abstract_location(actr, "object found", ex.ppi) : nothing
+    return :searching
+end
+
+function find_object2!(actr, ex)
+    visible_objects = filter(x->relevant_object(actr, x), get_iconic_memory(actr))
+    if isempty(visible_objects)
+        ex.trace ? print_abstract_location(actr, "error locating object", ex.ppi) : nothing
+        return :error
+    end
     max_vo = max_activation(visible_objects)
-    # terminate and return error if no visual objects have activation above threshold 
     if terminate(actr, max_vo)
         ex.trace ? print_abstract_location(actr, "termination threshold exceeded", ex.ppi) : nothing
         return :error
     end
-    # if visual object with highest activation is above threshold, put it in the location buffer
     actr.visual_location.buffer = max_vo
     ex.trace ? print_abstract_location(actr, "object found", ex.ppi) : nothing
     return :searching
 end
+
 
 attend_object!(actr, ex) = attend_object!(actr, ex, actr.visual_location.buffer[1])
 
