@@ -129,7 +129,7 @@ end
 saccade_time(actr, ppi) = saccade_time(actr, actr.visual_location.buffer[1], ppi)
 
 function saccade_time(actr, vo, ppi)
-    @unpack Δexe, β₀exe = actr.parms
+    (;Δexe, β₀exe) = actr.parms
     distance = compute_angular_distance(actr, vo, ppi)
     μ = β₀exe + distance * Δexe
     θ = gamma_parms(μ, actr.parms.σfactor)
@@ -167,7 +167,7 @@ function find_object!(actr, ex)
 end
 
 function find_object1!(actr, ex)
-    @unpack iconic_memory = actr.visual_location
+    (;iconic_memory) = actr.visual_location
     visible_objects = filter(x->relevant_object(actr, x), iconic_memory)
     if isempty(visible_objects)
         ex.trace ? print_abstract_location(actr, "error locating object", ex.ppi) : nothing
@@ -292,7 +292,7 @@ function update_n_finst!(actr, vos)
 end
 
 function compute_activations!(actr)
-    @unpack iconic_memory = actr.visual_location
+    (;iconic_memory) = actr.visual_location
     iconic_memory = filter(x -> x.visible, actr.visicon)
     topdown_activations!(iconic_memory, actr.goal.buffer[1])
     bottomup_activations!(iconic_memory)
@@ -576,7 +576,7 @@ function orient!(actr, ex)
 end
 
 function fixation_prob(actr, visicon, visible_objects, fixation)
-    @unpack stop,idx = fixation
+    (;stop,idx) = fixation
     act = map(x -> x.activation, visible_objects)
     push!(act, actr.parms.τₐ)
     σ = actr.parms.σ*sqrt(2)
